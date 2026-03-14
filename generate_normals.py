@@ -5,7 +5,7 @@ import numpy as np
 
 
 def gaussian_deviate() -> (float, float):
-
+    """Generate two independent normally distributed random vars."""
     rng = np.random.default_rng()
 
     fac = r = v1 = v2 = 0.0
@@ -26,21 +26,25 @@ def gaussian_deviate() -> (float, float):
 
 
 def generate_2d_gas_data(
-    num_samples, mean=(0, 0), std=([1, 0], [0, 1])
-) -> (list[float], list[float]):
+    num_samples: int,
+    mean: tuple[float, float] = (0, 0),
+    std: tuple[float, float] = (1.0, 1.0),
+) -> tuple[list[float], list[float]]:
+    """Generate 2D Gaussian data using independent standard deviations."""
     x = []
     y = []
 
     for _ in range(num_samples):
         g1, g2 = gaussian_deviate()
 
-        x.append(g1 * std[0][0] + mean[0])
-        y.append(g2 * std[1][1] + mean[1])
+        x.append(g1 * std[0] + mean[0])
+        y.append(g2 * std[1] + mean[1])
 
     return x, y
 
 
-def plot_2d_gas(x1, y1, x2, y2, fig_path="gas.png") -> None:
+def plot_2d_gas(x1, y1, x2, y2, fig_path="gas.png") -> None:  # noqa: ANN001
+    """Plot 2D Gaussian data."""
     fig_path.parent.mkdir(parents=True, exist_ok=True)
 
     plt.figure()
@@ -50,15 +54,17 @@ def plot_2d_gas(x1, y1, x2, y2, fig_path="gas.png") -> None:
     plt.xlabel("X")
     plt.ylabel("Y")
     plt.axis("equal")
-    plt.grid(True)
+    plt.grid(visible=True)
     plt.legend()
     plt.savefig(fig_path)
     plt.close()
 
 
 if __name__ == "__main__":
-    x1, y1= generate_2d_gas_data(60000, mean=(1,1))
-    x2, y2= generate_2d_gas_data(140000, mean=(4,4))
+    plot_dir = pathlib.Path("attachments")
 
-    path = pathlib.Path("attachments") / "plotted_dataset_A.png"
+    # Generate dataset A
+    x1, y1 = generate_2d_gas_data(60000, mean=(1, 1), std=(1.0, 1.0))
+    x2, y2 = generate_2d_gas_data(140000, mean=(4, 4), std=(1.0, 1.0))
+    path = plot_dir / "plotted_dataset_A.png"
     plot_2d_gas(x1, y1, x2, y2, fig_path=path)
