@@ -1,9 +1,10 @@
-import matplotlib.pyplot as plt
-import numpy as np
 import pathlib
 
+import matplotlib.pyplot as plt
+import numpy as np
 
-def gaussian_deviate(dim: int = 2) -> (float, float):
+
+def gaussian_deviate() -> (float, float):
 
     rng = np.random.default_rng()
 
@@ -21,47 +22,42 @@ def gaussian_deviate(dim: int = 2) -> (float, float):
     gas1 = v2 * fac
     gas2 = v1 * fac
 
-    if dim == 1:
-        return gas1
     return gas1, gas2
 
 
-def sample_gas_dev(num_gas: int, num_gas2: int = 0) -> (list[float], list[float]):
-    g1_list = []
-    g2_list = []
+def generate_2d_gas_data(
+    num_samples, mean=(0, 0), std=([1, 0], [0, 1])
+) -> (list[float], list[float]):
+    x = []
+    y = []
 
-    # Sample from each
-    for idx in range(max(num_gas, num_gas2)):
-        g1, g2 = gaussian_deviate(dim=2)
+    for _ in range(num_samples):
+        g1, g2 = gaussian_deviate()
 
-        if idx <= num_gas - 1:
-            g1_list.append(g1)
+        x.append(g1 * std[0][0] + mean[0])
+        y.append(g2 * std[1][1] + mean[1])
 
-        if idx <= num_gas2 - 1:
-            g2_list.append(g2)
-
-    return g1_list, g2_list
+    return x, y
 
 
-def plot_gasdev(g1_list, g2_list, fig_name="gas.png") -> None:
-
-    if len(g1_list) != len(g2_list):
-        raise ValueError("Lists must have the same length.")
+def plot_2d_gas(x1, y1, x2, y2, fig_name="gas.png") -> None:
 
     plt.figure()
-    plt.scatter(g1_list, g2_list, alpha=0.3)
+    plt.scatter(x1, y1, alpha=0.3, color="blue", label="N(μ_1, Σ_1)")
+    plt.scatter(x2, y2, alpha=0.3, color="orange", label="N(μ_1, Σ_2)")
     plt.title("Scatter of generated 2D Gaussian.")
-    plt.xlabel("g1")
-    plt.ylabel("g2")
+    plt.xlabel("X")
+    plt.ylabel("Y")
     plt.axis("equal")
     plt.grid(True)
+    plt.legend()
     plt.savefig("tmp.png")
+    plt.close()
 
 
 if __name__ == "__main__":
-    sample_gas_dev(num_gas=60000, num_gas2=140000)
+    x1, y1= generate_2d_gas_data(60000, mean=(1,1))
+    x2, y2= generate_2d_gas_data(14000, mean=(4,4))
 
-    g1_list, g2_list = sample_gas_dev(num_gas=60000, num_gas2=140000)
-    
     path = pathlib.Path("tmp/gas.png")
-    plot_gasdev(g1_list, g2_list, fig_name=path)
+    plot_2d_gas(x1, y1, x2, y2, fig_name=path)
