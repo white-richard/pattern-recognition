@@ -40,7 +40,7 @@ def generate_2d_gas_data(
     return x, y
 
 
-def plot_2d_gas(x1, y1, x2, y2, fig_name="gas.png") -> None:
+def plot_2d_gas(x1, y1, x2, y2, fig_path="gas.png") -> None:
 
     plt.figure()
     plt.scatter(x1, y1, alpha=0.3, color="blue", label="N(μ_1, Σ_1)")
@@ -51,7 +51,7 @@ def plot_2d_gas(x1, y1, x2, y2, fig_name="gas.png") -> None:
     plt.axis("equal")
     plt.grid(True)
     plt.legend()
-    plt.savefig("tmp.png")
+    plt.savefig(fig_path)
     plt.close()
 
 
