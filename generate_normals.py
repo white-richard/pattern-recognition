@@ -29,27 +29,30 @@ def generate_2d_gas_data(
     num_samples: int,
     mean: tuple[float, float] = (0, 0),
     std: tuple[float, float] = (1.0, 1.0),
-) -> tuple[list[float], list[float]]:
+) -> np.ndarray:
     """Generate 2D Gaussian data using independent standard deviations."""
-    x = []
-    y = []
+    points = []
 
     for _ in range(num_samples):
         g1, g2 = gaussian_deviate()
 
-        x.append(g1 * std[0] + mean[0])
-        y.append(g2 * std[1] + mean[1])
+        x_val = g1 * std[0] + mean[0]
+        y_val = g2 * std[1] + mean[1]
 
-    return x, y
+        points.append([x_val, y_val])
+
+    return np.array(points)
 
 
-def plot_2d_gas(x1, y1, x2, y2, fig_path="gas.png") -> None:  # noqa: ANN001
+def plot_2d_gas(points: tuple[np.ndarray], fig_path: str = "gas.png") -> None:
     """Plot 2D Gaussian data."""
     fig_path.parent.mkdir(parents=True, exist_ok=True)
 
     plt.figure()
-    plt.scatter(x1, y1, s=1, alpha=0.1, color="blue", label="N(μ_1, Σ_1)")
-    plt.scatter(x2, y2, s=1, alpha=0.1, color="orange", label="N(μ_1, Σ_2)")
+    for i, point in enumerate(points):
+        x = point[:, 0]
+        y = point[:, 1]
+        plt.scatter(x, y, s=1, alpha=0.1, label=f"N(μ_{i + 1}, Σ_{i + 1})", color=f"C{i}")
     plt.title("Scatter of generated 2D Gaussian.")
     plt.xlabel("X")
     plt.ylabel("Y")
@@ -64,7 +67,7 @@ if __name__ == "__main__":
     plot_dir = pathlib.Path("attachments")
 
     # Generate dataset A
-    x1, y1 = generate_2d_gas_data(60000, mean=(1, 1), std=(1.0, 1.0))
-    x2, y2 = generate_2d_gas_data(140000, mean=(4, 4), std=(1.0, 1.0))
+    points1 = generate_2d_gas_data(60000, mean=(1, 1), std=(1.0, 1.0))
+    points2 = generate_2d_gas_data(140000, mean=(4, 4), std=(1.0, 1.0))
     path = plot_dir / "plotted_dataset_A.png"
-    plot_2d_gas(x1, y1, x2, y2, fig_path=path)
+    plot_2d_gas((points1, points2), fig_path=path)
