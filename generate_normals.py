@@ -41,10 +41,11 @@ def generate_2d_gas_data(
 
 
 def plot_2d_gas(x1, y1, x2, y2, fig_path="gas.png") -> None:
+    fig_path.parent.mkdir(parents=True, exist_ok=True)
 
     plt.figure()
-    plt.scatter(x1, y1, alpha=0.3, color="blue", label="N(μ_1, Σ_1)")
-    plt.scatter(x2, y2, alpha=0.3, color="orange", label="N(μ_1, Σ_2)")
+    plt.scatter(x1, y1, s=1, alpha=0.1, color="blue", label="N(μ_1, Σ_1)")
+    plt.scatter(x2, y2, s=1, alpha=0.1, color="orange", label="N(μ_1, Σ_2)")
     plt.title("Scatter of generated 2D Gaussian.")
     plt.xlabel("X")
     plt.ylabel("Y")
@@ -57,7 +58,7 @@ def plot_2d_gas(x1, y1, x2, y2, fig_path="gas.png") -> None:
 
 if __name__ == "__main__":
     x1, y1= generate_2d_gas_data(60000, mean=(1,1))
-    x2, y2= generate_2d_gas_data(14000, mean=(4,4))
+    x2, y2= generate_2d_gas_data(140000, mean=(4,4))
 
-    path = pathlib.Path("tmp/gas.png")
-    plot_2d_gas(x1, y1, x2, y2, fig_name=path)
+    path = pathlib.Path("attachments") / "plotted_dataset_A.png"
+    plot_2d_gas(x1, y1, x2, y2, fig_path=path)
