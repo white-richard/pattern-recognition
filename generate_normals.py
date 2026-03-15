@@ -27,19 +27,21 @@ def gaussian_deviate() -> (float, float):
 
 def generate_2d_gas_data(
     num_samples: int,
-    mean: tuple[float, float] = (0, 0),
-    std: tuple[float, float] = (1.0, 1.0),
+    mean: np.ndarray,
+    covariance: np.ndarray,
 ) -> np.ndarray:
-    """Generate 2D Gaussian data using independent standard deviations."""
-    points = []
+    """Generate 2D Gaussian data using a covariance matrix and gaussian_deviate."""
+    points = np.zeros((num_samples, 2))
 
-    for _ in range(num_samples):
+    # Uhh we need to decompose the covariance matrix to fit in this
+    chol = np.linalg.cholesky(covariance)
+
+    for idx in range(num_samples):
         g1, g2 = gaussian_deviate()
+        z = np.array([g1, g2])
 
-        x_val = g1 * std[0] + mean[0]
-        y_val = g2 * std[1] + mean[1]
-
-        points.append([x_val, y_val])
+        # Transform: x = Lz + mu
+        points[idx] = chol @ z + mean
 
     return np.array(points)
 
@@ -87,7 +89,30 @@ if __name__ == "__main__":
     plot_dir = pathlib.Path("attachments")
 
     # Generate dataset A
-    points1 = generate_2d_gas_data(60000, mean=(1, 1), std=(1.0, 1.0))
-    points2 = generate_2d_gas_data(140000, mean=(4, 4), std=(1.0, 1.0))
+    points1 = generate_2d_gas_data(
+        60000,
+        mean=np.array([1, 1]),
+        covariance=np.array([[1.0, 0.0], [0.0, 1.0]]),
+    )
+    points2 = generate_2d_gas_data(
+        140000,
+        mean=np.array([4, 4]),
+        covariance=np.array([[1.0, 0.0], [0.0, 1.0]]),
+    )
+
     path = plot_dir / "plotted_dataset_A.png"
+    plot_2d_gas((points1, points2), fig_path=path)
+
+    # Generate dataset B
+    points1 = generate_2d_gas_data(
+        60000,
+        mean=np.array([1, 1]),
+        covariance=np.array([[1.0, 0.0], [0.0, 1.0]]),
+    )
+    points2 = generate_2d_gas_data(
+        140000,
+        mean=np.array([4, 4]),
+        covariance=np.array([[4.0, 0.0], [0.0, 8.0]]),
+    )
+    path = plot_dir / "plotted_dataset_B.png"
     plot_2d_gas((points1, points2), fig_path=path)
