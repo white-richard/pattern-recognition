@@ -75,7 +75,7 @@ def plot_2d_gas(
         plt.contour(xx, yy, z, levels=[0], colors="black", linestyles="--")
         plt.plot([], [], "k--", label="Decision Boundary")
 
-    plt.title(title)
+    # plt.title(title)
     plt.xlabel("X")
     plt.ylabel("Y")
     plt.axis("equal")
