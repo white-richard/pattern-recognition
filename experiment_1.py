@@ -19,6 +19,7 @@ if __name__ == "__main__":
     labels2 = np.full(num_class2, 2)
 
     std = 1
+    cov_matrix = np.array([[1, 0], [0, 1]])
     total = num_class1 + num_class2
 
     # Calculate priors
@@ -26,8 +27,8 @@ if __name__ == "__main__":
     p2 = num_class2 / total
 
     # Generate out normal points
-    points1 = generate_2d_gas_data(num_class1, mean=mean_class1)
-    points2 = generate_2d_gas_data(num_class2, mean=mean_class2)
+    points1 = generate_2d_gas_data(num_class1, mean=mean_class1, covariance=cov_matrix)
+    points2 = generate_2d_gas_data(num_class2, mean=mean_class2, covariance=cov_matrix)
 
     # Stack our points and labels for distrimination
     points = np.vstack((points1, points2))
@@ -71,9 +72,6 @@ if __name__ == "__main__":
         decision_fn=boundary_func,
         fig_path=fig_dir / "experiment1_decision.png",
     )
-
-    # Define our std as a ndarray
-    cov_matrix = np.array([[1, 0], [0, 1]])
 
     # Calculate upper bound
     b_error = bhattacharyya_error_bound(
