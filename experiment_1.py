@@ -3,7 +3,7 @@ import pathlib
 import numpy as np
 
 from bayes import discriminate_case_one
-from generate_normals import generate_2d_gas_data
+from generate_normals import generate_2d_gas_data, plot_2d_gas
 
 if __name__ == "__main__":
     fig_dir = pathlib.Path("attachments")
@@ -38,9 +38,36 @@ if __name__ == "__main__":
     g2 = discriminate_case_one(x=points, p_i=p2, mean=mean_class2, std=std)
     predictions = np.where(g1 > g2, 1, 2)
 
-    # Error rate
+    # Class 1 error rate
+    num_errors_class1 = np.sum(predictions[:num_class1] != labels1)
+    error_rate_class1 = num_errors_class1 / num_class1
+    print(f"Class 1 total errors: {num_errors_class1}")
+    print(f"Class 1 error rate: {error_rate_class1 * 100:.2f}%")
+
+    # Class 2 error rate
+    num_errors_class2 = np.sum(predictions[num_class1:] != labels2)
+    error_rate_class2 = num_errors_class2 / num_class2
+    print(f"Class 2 total errors: {num_errors_class2}")
+    print(f"Class 2 error rate: {error_rate_class2 * 100:.2f}%")
+
+    # Overall Error rate
     num_errors = np.sum(predictions != labels)
     error_rate = num_errors / total
-
     print(f"Total errors: {num_errors}")
     print(f"Minimum error rate: {error_rate * 100:.2f}%")
+
+    def boundary_func(grid_pts) -> float:  # noqa: ANN001
+        """Boundary function for two discriminate.
+
+        From g_1(x) = g_2(x)
+        """
+        g1_grid = discriminate_case_one(x=grid_pts, p_i=p1, mean=mean_class1, std=std)
+        g2_grid = discriminate_case_one(x=grid_pts, p_i=p2, mean=mean_class2, std=std)
+        return g1_grid - g2_grid
+
+    # Plot w/ decision boundary
+    plot_2d_gas(
+        points=(points1, points2),
+        decision_fn=boundary_func,
+        fig_path=fig_dir / "experiment1_decision.png",
+    )

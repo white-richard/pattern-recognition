@@ -44,7 +44,12 @@ def generate_2d_gas_data(
     return np.array(points)
 
 
-def plot_2d_gas(points: tuple[np.ndarray], fig_path: str = "gas.png") -> None:
+def plot_2d_gas(
+    points: tuple[np.ndarray],
+    title: str = "Plotted 2D Gaussians",
+    fig_path: str = "gas.png",
+    decision_fn: callable[[np.ndarray], np.ndarray] | None = None,
+) -> None:
     """Plot 2D Gaussian data."""
     fig_path.parent.mkdir(parents=True, exist_ok=True)
 
@@ -53,7 +58,22 @@ def plot_2d_gas(points: tuple[np.ndarray], fig_path: str = "gas.png") -> None:
         x = point[:, 0]
         y = point[:, 1]
         plt.scatter(x, y, s=1, alpha=0.1, label=f"N(μ_{i + 1}, Σ_{i + 1})", color=f"C{i}")
-    plt.title("Scatter of generated 2D Gaussian.")
+
+    if decision_fn is not None:
+        x_min, x_max = plt.xlim()
+        y_min, y_max = plt.ylim()
+
+        # Build grid for decision
+        xx, yy = np.meshgrid(np.linspace(x_min, x_max, 200), np.linspace(y_min, y_max, 200))
+        grid_points = np.c_[xx.ravel(), yy.ravel()]
+
+        # Calcluate boundary
+        z = decision_fn(grid_points).reshape(xx.shape)
+
+        plt.contour(xx, yy, z, levels=[0], colors="black", linestyles="--")
+        plt.plot([], [], "k--", label="Decision Boundary")
+
+    plt.title(title)
     plt.xlabel("X")
     plt.ylabel("Y")
     plt.axis("equal")
