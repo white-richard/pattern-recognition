@@ -41,7 +41,32 @@ def discriminate_case_one(*, x: np.ndarray, p_i: float, mean: np.ndarray, std: f
     return t1 + t2
 
 
-def bhattacharyya_distance_same_covariance(
+def discriminate_case_three(*, x: np.ndarray, p: float, mean: np.ndarray, cov: np.ndarray) -> float:
+    """Calculate the discriminate for class c under the case three assumptions.
+
+    Case 3 assumes arbritray covariance matrix.
+    We can then discriminate using:
+        g_i(x) = x^T@W_i@x+w_i^T@x+w_i0
+        where:
+            W_i = -∑_i^-1 / 2
+            w_i = ∑_i^-1@µ_i
+            w_i0 = -ln(|∑_i|) / 2 + ln(P(ω_i))
+            w_i0 = -µ_i^T @ ∑_i^-1 @ µ_i / 2 - ln(|∑_i|) / 2 + ln(P(ω_i))
+    """
+    inv_cov = np.linalg.inv(cov)
+    det_cov = np.linalg.det(cov)
+
+    W_i = -0.5 * inv_cov  # noqa: N806
+    w_i = inv_cov @ mean
+    w_i0 = -0.5 * (mean.T @ inv_cov @ mean) - 0.5 * np.log(det_cov) + np.log(p)
+
+    quadratic_part = np.sum((x @ W_i) * x, axis=1)
+    linear_part = x @ w_i
+
+    return quadratic_part + linear_part + w_i0
+
+
+def bhattacharyya_distance_same_covariance_case_one(
     *,
     mean1: np.ndarray,
     mean2: np.ndarray,
@@ -61,7 +86,7 @@ def bhattacharyya_distance_same_covariance(
     return float(k_05)
 
 
-def bhattacharyya_error_bound(
+def bhattacharyya_error_bound_case_one(
     *,
     mean1: np.ndarray,
     mean2: np.ndarray,
@@ -75,11 +100,41 @@ def bhattacharyya_error_bound(
     We calculate with:
         P(error) <= sqrt(P(ω_1) * P(ω_2))e^(-k_0.5).
     """
-    k_05 = bhattacharyya_distance_same_covariance(mean1=mean1, mean2=mean2, covariance=covariance)
+    k_05 = bhattacharyya_distance_same_covariance_case_one(
+        mean1=mean1,
+        mean2=mean2,
+        covariance=covariance,
+    )
     v1 = np.sqrt(p1 * p2)
     v2 = np.exp(-k_05)
     error_bound = v1 * v2
     return float(error_bound)
+
+
+def bhattacharyya_error_bound_case_three(  # noqa: PLR0913
+    mean1: np.ndarray,
+    mean2: np.ndarray,
+    cov1: np.ndarray,
+    cov2: np.ndarray,
+    p1: float,
+    p2: float,
+) -> float:
+    """Full Bhattacharyya bound for arbitrary covariances for case three."""
+    diff = mean1 - mean2
+    cov_avg = (cov1 + cov2) / 2
+
+    k_mean = (0.125) * (diff.T @ np.linalg.inv(cov_avg) @ diff)
+
+    det_1 = np.linalg.det(cov1)
+    det_2 = np.linalg.det(cov2)
+    det_avg = np.linalg.det(cov_avg)
+
+    k_shape = 0.5 * np.log(det_avg / np.sqrt(det_1 * det_2))
+
+    k_half = k_mean + k_shape
+
+    # Final Error Bound
+    return np.sqrt(p1 * p2) * np.exp(-k_half)
 
 
 if __name__ == "__main__":
