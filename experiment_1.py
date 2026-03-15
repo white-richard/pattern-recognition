@@ -2,7 +2,7 @@ import pathlib
 
 import numpy as np
 
-from bayes import discriminate_case_one
+from bayes import bhattacharyya_error_bound, discriminate_case_one
 from generate_normals import generate_2d_gas_data, plot_2d_gas
 
 if __name__ == "__main__":
@@ -71,3 +71,12 @@ if __name__ == "__main__":
         decision_fn=boundary_func,
         fig_path=fig_dir / "experiment1_decision.png",
     )
+
+    # Define our std as a ndarray
+    cov_matrix = np.array([[1, 0], [0, 1]])
+
+    # Calculate upper bound
+    b_error = bhattacharyya_error_bound(
+        mean1=np.array(mean_class1), mean2=np.array(mean_class2), covariance=cov_matrix, p1=p1, p2=p2
+    )
+    print(f"Error upper bound: {b_error * 100:.2f}%")

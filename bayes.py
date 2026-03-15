@@ -41,6 +41,47 @@ def discriminate_case_one(*, x: np.ndarray, p_i: float, mean: np.ndarray, std: f
     return t1 + t2
 
 
+def bhattacharyya_distance_same_covariance(
+    *,
+    mean1: np.ndarray,
+    mean2: np.ndarray,
+    covariance: np.ndarray,
+) -> float:
+    """Calculate the case one simplified Bhattacharyya distance.
+
+    Assumes each covariance matrix is equal, but not unit variance.
+    If it was unit variance, we could switch inverse with transpose.
+    The k(B) formula can be simplified because the second term on right
+    becomes 0 since covariance is equal. The first term, two of the sigma's
+    cancel out. The resulting formula looks like:
+        k(0.5) = 1/8(µ_1 - µ_2)^T * ∑^-1 * (µ_1 - µ_2)
+    """
+    mean_diff = mean1 - mean2
+    k_05 = (mean_diff.T @ np.linalg.inv(covariance) @ mean_diff) / 8
+    return float(k_05)
+
+
+def bhattacharyya_error_bound(
+    *,
+    mean1: np.ndarray,
+    mean2: np.ndarray,
+    covariance: np.ndarray,
+    p1: float,
+    p2: float,
+) -> float:
+    """Calculate the Bhattacharyya error bound for case one (equal covariance).
+
+    Return the upper bound of the probability of error.
+    We calculate with:
+        P(error) <= sqrt(P(ω_1) * P(ω_2))e^(-k_0.5).
+    """
+    k_05 = bhattacharyya_distance_same_covariance(mean1=mean1, mean2=mean2, covariance=covariance)
+    v1 = np.sqrt(p1 * p2)
+    v2 = np.exp(-k_05)
+    error_bound = v1 * v2
+    return float(error_bound)
+
+
 if __name__ == "__main__":
     # Known
     p1_data, p2_data = sample_priors()
