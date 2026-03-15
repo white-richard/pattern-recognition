@@ -66,6 +66,15 @@ def discriminate_case_three(*, x: np.ndarray, p: float, mean: np.ndarray, cov: n
     return quadratic_part + linear_part + w_i0
 
 
+def discriminate_euclidean(*, x: np.ndarray, mean: np.ndarray) -> float:
+    """Calculate the discriminate for class c using euclidean distance.
+
+    Formula:
+        g_i(x) = - ||x - µ_i||^2
+    """
+    return -(np.linalg.norm(x - mean, axis=1) ** 2)
+
+
 def bhattacharyya_distance_same_covariance_case_one(
     *,
     mean1: np.ndarray,
