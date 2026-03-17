@@ -4,9 +4,13 @@ import numpy as np
 
 from bayes import bhattacharyya_error_bound_case_three, discriminate_euclidean
 from generate_normals import generate_2d_gas_data, plot_2d_gas
+from seed import set_all_seeds
 
 if __name__ == "__main__":
+    set_all_seeds(42)
     fig_dir = pathlib.Path("attachments")
+
+    print("\n" + "=" * 5 + "Experiment 3" + "=" * 5)
 
     # Class 1
     num_class1 = 60000

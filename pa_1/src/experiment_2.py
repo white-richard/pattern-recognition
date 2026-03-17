@@ -2,11 +2,15 @@ import pathlib
 
 import numpy as np
 
-from bayes import bhattacharyya_error_bound_case_three, discriminate_euclidean
+from bayes import bhattacharyya_error_bound_case_three, discriminate_case_three
 from generate_normals import generate_2d_gas_data, plot_2d_gas
+from seed import set_all_seeds
 
 if __name__ == "__main__":
+    set_all_seeds(42)
     fig_dir = pathlib.Path("attachments")
+
+    print("\n" + "=" * 5 + "Experiment 2" + "=" * 5)
 
     # Class 1
     num_class1 = 60000
@@ -35,8 +39,8 @@ if __name__ == "__main__":
     labels = np.concatenate((labels1, labels2))
 
     # Discriminate
-    g1 = discriminate_euclidean(x=points, mean=mean_class1)
-    g2 = discriminate_euclidean(x=points, mean=mean_class2)
+    g1 = discriminate_case_three(x=points, p=p1, mean=mean_class1, cov=cov1)
+    g2 = discriminate_case_three(x=points, p=p2, mean=mean_class2, cov=cov2)
     predictions = np.where(g1 > g2, 1, 2)
 
     # Class 1 error rate
@@ -62,15 +66,15 @@ if __name__ == "__main__":
 
         From g_1(x) = g_2(x)
         """
-        g1_grid = discriminate_euclidean(x=grid_pts, mean=mean_class1)
-        g2_grid = discriminate_euclidean(x=grid_pts, mean=mean_class2)
+        g1_grid = discriminate_case_three(x=grid_pts, p=p1, mean=mean_class1, cov=cov1)
+        g2_grid = discriminate_case_three(x=grid_pts, p=p2, mean=mean_class2, cov=cov2)
         return g1_grid - g2_grid
 
     # Plot w/ decision boundary
     plot_2d_gas(
         points=(points1, points2),
         decision_fn=boundary_func,
-        fig_path=fig_dir / "experiment4_decision.png",
+        fig_path=fig_dir / "experiment2_decision.png",
     )
 
     # Calculate upper bound

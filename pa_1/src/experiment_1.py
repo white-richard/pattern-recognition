@@ -2,24 +2,28 @@ import pathlib
 
 import numpy as np
 
-from bayes import bhattacharyya_error_bound_case_three, discriminate_case_three
+from bayes import bhattacharyya_error_bound_case_one, discriminate_case_one
 from generate_normals import generate_2d_gas_data, plot_2d_gas
+from seed import set_all_seeds
 
 if __name__ == "__main__":
+    set_all_seeds(42)
     fig_dir = pathlib.Path("attachments")
+
+    print("\n" + "=" * 5 + "Experiment 1" + "=" * 5)
 
     # Class 1
     num_class1 = 60000
-    mean_class1 = np.array([1, 1])
-    cov1 = np.array([[1.0, 0.0], [0.0, 1.0]])
+    mean_class1 = (1, 1)
     labels1 = np.full(num_class1, 1)
 
     # Class 2
     num_class2 = 140000
-    mean_class2 = np.array([4, 4])
-    cov2 = np.array([[4.0, 0.0], [0.0, 8.0]])
+    mean_class2 = (4, 4)
     labels2 = np.full(num_class2, 2)
 
+    std = 1
+    cov_matrix = np.array([[1, 0], [0, 1]])
     total = num_class1 + num_class2
 
     # Calculate priors
@@ -27,16 +31,16 @@ if __name__ == "__main__":
     p2 = num_class2 / total
 
     # Generate out normal points
-    points1 = generate_2d_gas_data(num_class1, mean=mean_class1, covariance=cov1)
-    points2 = generate_2d_gas_data(num_class2, mean=mean_class2, covariance=cov2)
+    points1 = generate_2d_gas_data(num_class1, mean=mean_class1, covariance=cov_matrix)
+    points2 = generate_2d_gas_data(num_class2, mean=mean_class2, covariance=cov_matrix)
 
     # Stack our points and labels for distrimination
     points = np.vstack((points1, points2))
     labels = np.concatenate((labels1, labels2))
 
     # Discriminate
-    g1 = discriminate_case_three(x=points, p=p1, mean=mean_class1, cov=cov1)
-    g2 = discriminate_case_three(x=points, p=p2, mean=mean_class2, cov=cov2)
+    g1 = discriminate_case_one(x=points, p_i=p1, mean=mean_class1, std=std)
+    g2 = discriminate_case_one(x=points, p_i=p2, mean=mean_class2, std=std)
     predictions = np.where(g1 > g2, 1, 2)
 
     # Class 1 error rate
@@ -62,23 +66,22 @@ if __name__ == "__main__":
 
         From g_1(x) = g_2(x)
         """
-        g1_grid = discriminate_case_three(x=grid_pts, p=p1, mean=mean_class1, cov=cov1)
-        g2_grid = discriminate_case_three(x=grid_pts, p=p2, mean=mean_class2, cov=cov2)
+        g1_grid = discriminate_case_one(x=grid_pts, p_i=p1, mean=mean_class1, std=std)
+        g2_grid = discriminate_case_one(x=grid_pts, p_i=p2, mean=mean_class2, std=std)
         return g1_grid - g2_grid
 
     # Plot w/ decision boundary
     plot_2d_gas(
         points=(points1, points2),
         decision_fn=boundary_func,
-        fig_path=fig_dir / "experiment2_decision.png",
+        fig_path=fig_dir / "experiment1_decision.png",
     )
 
     # Calculate upper bound
-    b_error = bhattacharyya_error_bound_case_three(
+    b_error = bhattacharyya_error_bound_case_one(
         mean1=np.array(mean_class1),
         mean2=np.array(mean_class2),
-        cov1=cov1,
-        cov2=cov2,
+        covariance=cov_matrix,
         p1=p1,
         p2=p2,
     )
