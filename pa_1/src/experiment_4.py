@@ -1,7 +1,6 @@
 import pathlib
 
 import numpy as np
-
 from bayes import bhattacharyya_error_bound_case_three, discriminate_euclidean
 from generate_normals import generate_2d_gas_data, plot_2d_gas
 from seed import set_all_seeds

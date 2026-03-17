@@ -77,4 +77,5 @@ python src/experiment_4.py
 
 # Notes
 
-My exact results can be found in `docs/results.md`, though I did heavily seed so it should be highly reproducible.
+- My exact results can be found in `docs/results.md`, though I did heavily seed so it should be highly reproducible.
+- I used numpy for common math calculations and matplotlib for plotting.
