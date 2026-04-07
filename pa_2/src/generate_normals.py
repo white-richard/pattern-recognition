@@ -4,10 +4,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 
-def gaussian_deviate() -> (float, float):
+def gaussian_deviate(rng: np.random.Generator) -> (float, float):
     """Generate two independent normally distributed random vars."""
-    rng = np.random.default_rng()
-
     fac = r = v1 = v2 = 0.0
 
     while True:
@@ -29,6 +27,7 @@ def generate_2d_gas_data(
     num_samples: int,
     mean: np.ndarray,
     covariance: np.ndarray,
+    rng: np.random.Generator,
 ) -> np.ndarray:
     """Generate 2D Gaussian data using a covariance matrix and gaussian_deviate."""
     points = np.zeros((num_samples, 2))
@@ -37,7 +36,7 @@ def generate_2d_gas_data(
     chol = np.linalg.cholesky(covariance)
 
     for idx in range(num_samples):
-        g1, g2 = gaussian_deviate()
+        g1, g2 = gaussian_deviate(rng)
         z = np.array([g1, g2])
 
         # Transform: x = Lz + mu
@@ -87,17 +86,21 @@ def plot_2d_gas(
 
 if __name__ == "__main__":
     plot_dir = pathlib.Path("attachments")
+    rng1 = np.random.default_rng(42)
+    rng2 = np.random.default_rng(43)
 
     # Generate dataset A
     points1 = generate_2d_gas_data(
         60000,
         mean=np.array([1, 1]),
         covariance=np.array([[1.0, 0.0], [0.0, 1.0]]),
+        rng=rng1,
     )
     points2 = generate_2d_gas_data(
         140000,
         mean=np.array([4, 4]),
         covariance=np.array([[1.0, 0.0], [0.0, 1.0]]),
+        rng=rng2,
     )
 
     path = plot_dir / "plotted_dataset_A.png"
@@ -108,11 +111,13 @@ if __name__ == "__main__":
         60000,
         mean=np.array([1, 1]),
         covariance=np.array([[1.0, 0.0], [0.0, 1.0]]),
+        rng=rng1,
     )
     points2 = generate_2d_gas_data(
         140000,
         mean=np.array([4, 4]),
         covariance=np.array([[4.0, 0.0], [0.0, 8.0]]),
+        rng=rng2,
     )
     path = plot_dir / "plotted_dataset_B.png"
     plot_2d_gas((points1, points2), fig_path=path)
