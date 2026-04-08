@@ -56,7 +56,7 @@ def discriminate_case_three(*, x: np.ndarray, p: float, mean: np.ndarray, cov: n
     inv_cov = np.linalg.inv(cov)
     det_cov = np.linalg.det(cov)
 
-    W_i = -0.5 * inv_cov  # noqa: N806
+    W_i = -0.5 * inv_cov
     w_i = inv_cov @ mean
     w_i0 = -0.5 * (mean.T @ inv_cov @ mean) - 0.5 * np.log(det_cov) + np.log(p)
 
@@ -144,6 +144,20 @@ def bhattacharyya_error_bound_case_three(  # noqa: PLR0913
 
     # Final Error Bound
     return np.sqrt(p1 * p2) * np.exp(-k_half)
+
+
+"""
+Since we assume that the underlying distributions are guassians,
+ML reduces to the sample mean and variance for the univariate case.
+"""
+def est_sample_mean(samples: np.ndarray) -> float:
+    length = len(samples)
+    return np.sum(samples) / length
+
+
+def est_sample_var(samples: np.ndarray, mean: float) -> float:
+    length = len(samples)
+    return np.sum(samples - mean) / length
 
 
 if __name__ == "__main__":
