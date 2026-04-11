@@ -150,15 +150,22 @@ def bhattacharyya_error_bound_case_three(  # noqa: PLR0913
 Since we assume that the underlying distributions are guassians,
 ML reduces to the sample mean and variance for the univariate case.
 """
-def est_sample_mean(samples: np.ndarray) -> float:
-    length = len(samples)
-    return np.sum(samples) / length
 
 
-def est_sample_var(samples: np.ndarray, mean: float) -> float:
-    length = len(samples)
-    return np.sum(samples - mean) / length
+def est_sample_mean(samples: np.ndarray) -> np.ndarray:
+    """Calculate sample mean across all samples."""
+    length = samples.shape[0]  # num of rows
+    return np.sum(samples, axis=0) / length
 
+
+def est_sample_cov(samples: np.ndarray, mean: np.ndarray) -> np.ndarray:
+    """Calculate sample covariance across all samples."""
+    length = samples.shape[0]  # num of rows
+    difference = samples - mean  # n,d
+    return difference.T @ difference / length  # d,d
+
+
+# def generate_points_from_mean_cov(mean: float, cov:)
 
 if __name__ == "__main__":
     # Known
