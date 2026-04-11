@@ -128,16 +128,21 @@ def discriminate(
         )
     return {
         "class1_errors": num_errors_class1,
-        "class1_error_rate": error_rate_class1,
+        "class1_error_rate": round(error_rate_class1, 4),
         "class2_errors": num_errors_class2,
-        "class2_error_rate": error_rate_class2,
+        "class2_error_rate": round(error_rate_class2, 4),
         "total_errors": num_errors,
-        "min_error_rate": error_rate,
-        "error_upper_bound": b_error,
+        "min_error_rate": round(error_rate, 4),
+        "error_upper_bound": round(b_error, 4),
     }
 
 
-def main(case: int = 3, reduce_frac: float | None = None) -> list[dict]:
+def main(
+    mean: np.ndarray,
+    cov: np.ndarray,
+    case: int = 3,
+    reduce_frac: float | None = None,
+) -> list[dict]:
     rng1 = set_all_seeds(42)
     rng2 = np.random.default_rng(43)
     fig_dir = pathlib.Path("attachments")
@@ -148,13 +153,13 @@ def main(case: int = 3, reduce_frac: float | None = None) -> list[dict]:
     true_distribution = {
         1: {
             "n": class_one_n,
-            "mean": np.array([1, 1]),
-            "cov": np.array([[1.0, 0.0], [0.0, 1.0]]),
+            "mean": mean[0],
+            "cov": cov[0],
         },
         2: {
             "n": class_two_n,
-            "mean": np.array([4, 4]),
-            "cov": np.array([[1.0, 0.0], [0.0, 1.0]]),
+            "mean": mean[1],
+            "cov": cov[1],
         },
     }
     class_ids = (1, 2)
@@ -182,7 +187,7 @@ def main(case: int = 3, reduce_frac: float | None = None) -> list[dict]:
     true_points = np.vstack([true_points_by_class[c] for c in class_ids])
     true_labels_all = np.concatenate([true_labels[c] for c in class_ids])
 
-    # Optionally estimate from a reduced subset of the training data
+    # Optionally estimate from a reduced subset
     train_ns = {
         c: int(true_distribution[c]["n"] * reduce_frac)
         if reduce_frac is not None
@@ -196,8 +201,7 @@ def main(case: int = 3, reduce_frac: float | None = None) -> list[dict]:
     est_mean_2 = est_sample_mean(train_subsets[2])
     est_cov_2 = est_sample_cov(train_subsets[2], est_mean_2)
 
-    # Est class-conditional distribution — keep n and p at true values so the
-    # test-set split and prior ratio are not distorted by reduce_frac
+    # Est class-conditional distribution
     distribution = {
         1: {
             "n": true_distribution[1]["n"],
@@ -229,8 +233,6 @@ def main(case: int = 3, reduce_frac: float | None = None) -> list[dict]:
         for c in class_ids
     }
 
-    # Use true priors — they represent real-world class frequencies,
-    # not the (possibly reduced) training sample size
     for c in class_ids:
         distribution[c]["p"] = true_distribution[c]["p"]
 
@@ -273,17 +275,35 @@ def main(case: int = 3, reduce_frac: float | None = None) -> list[dict]:
 
 
 if __name__ == "__main__":
-    cases = (1, 3)
-    fracs = (None, 0.0001, 0.001, 0.01, 0.1)
-    rows = []
-    for case in cases:
-        for frac in fracs:
-            rows.extend(main(case, reduce_frac=frac))
+    print("Running...")
+    exprs = (1, 2)
+    for expr in exprs:
+        if expr == 1:
+            means = (np.array([1, 1]), np.array([4, 4]))
+            covs = (
+                np.array([[1.0, 0.0], [0.0, 1.0]]),
+                np.array([[1.0, 0.0], [0.0, 1.0]]),
+            )
+        elif expr == 2:
+            means = (np.array([1, 1]), np.array([4, 4]))
+            covs = (
+                np.array([[1.0, 0.0], [0.0, 1.0]]),
+                np.array([[4.0, 0.0], [0.0, 8.0]]),
+            )
+        else:
+            msg = f"Unsupported experiment: {expr}"
+            raise ValueError(msg)
+        cases = (1, 3)
+        fracs = (None, 0.0001, 0.001, 0.01, 0.1)
+        rows = []
+        for case in cases:
+            for frac in fracs:
+                rows.extend(main(mean=means, cov=covs, case=case, reduce_frac=frac))
 
-    csv_path = pathlib.Path("attachments") / "experiments_1_2_results.csv"
-    fieldnames = list(rows[0].keys())
-    with csv_path.open("w", newline="") as f:
-        writer = csv.DictWriter(f, fieldnames=fieldnames)
-        writer.writeheader()
-        writer.writerows(rows)
-    print(f"Saved results as csv to: {csv_path}")
+        csv_path = pathlib.Path("attachments") / f"experiments_{expr}_results.csv"
+        fieldnames = list(rows[0].keys())
+        with csv_path.open("w", newline="") as f:
+            writer = csv.DictWriter(f, fieldnames=fieldnames)
+            writer.writeheader()
+            writer.writerows(rows)
+        print(f"Saved results as csv to: {csv_path}")
