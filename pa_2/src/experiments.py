@@ -1,3 +1,4 @@
+import csv
 import pathlib
 
 import numpy as np
@@ -21,7 +22,7 @@ def discriminate(
     points_by_class,
     fig_dir,
     case: int = 3,
-) -> None:
+) -> dict:
 
     if case == 3:
         g1 = discriminate_case_three(
@@ -56,22 +57,16 @@ def discriminate(
 
     # Class 1 error rate
     class1_end = distribution[1]["n"]
-    num_errors_class1 = np.sum(predictions[:class1_end] != labels[:class1_end])
+    num_errors_class1 = int(np.sum(predictions[:class1_end] != labels[:class1_end]))
     error_rate_class1 = num_errors_class1 / distribution[1]["n"]
-    print(f"Class 1 total errors: {num_errors_class1}")
-    print(f"Class 1 error rate: {error_rate_class1 * 100:.2f}%")
 
     # Class 2 error rate
-    num_errors_class2 = np.sum(predictions[class1_end:] != labels[class1_end:])
+    num_errors_class2 = int(np.sum(predictions[class1_end:] != labels[class1_end:]))
     error_rate_class2 = num_errors_class2 / distribution[2]["n"]
-    print(f"Class 2 total errors: {num_errors_class2}")
-    print(f"Class 2 error rate: {error_rate_class2 * 100:.2f}%")
 
     # Overall Error rate
-    num_errors = np.sum(predictions != labels)
+    num_errors = int(np.sum(predictions != labels))
     error_rate = num_errors / total
-    print(f"Total errors: {num_errors}")
-    print(f"Minimum error rate: {error_rate * 100:.2f}%")
 
     def boundary_func(grid_pts) -> float:
         """Boundary function for two discriminate.
@@ -131,17 +126,23 @@ def discriminate(
             p1=distribution[1]["p"],
             p2=distribution[2]["p"],
         )
-    print(f"Error upper bound: {b_error * 100:.2f}%")
+    return {
+        "class1_errors": num_errors_class1,
+        "class1_error_rate": error_rate_class1,
+        "class2_errors": num_errors_class2,
+        "class2_error_rate": error_rate_class2,
+        "total_errors": num_errors,
+        "min_error_rate": error_rate,
+        "error_upper_bound": b_error,
+    }
 
 
-def main(case: int = 3) -> None:
+def main(case: int = 3, reduce_frac: float | None = None) -> list[dict]:
     rng1 = set_all_seeds(42)
     rng2 = np.random.default_rng(43)
     fig_dir = pathlib.Path("attachments")
     class_one_n = 60000
     class_two_n = 140000
-
-    print("\n" + "=" * 5 + f"Experiment 1, Case {case}" + "=" * 5)
 
     # True class-conditional distribution
     true_distribution = {
@@ -181,23 +182,30 @@ def main(case: int = 3) -> None:
     true_points = np.vstack([true_points_by_class[c] for c in class_ids])
     true_labels_all = np.concatenate([true_labels[c] for c in class_ids])
 
-    # Est class 1
-    est_mean_1 = est_sample_mean(true_points_by_class[1])
-    est_cov_1 = est_sample_cov(true_points_by_class[1], est_mean_1)
+    # Optionally estimate from a reduced subset of the training data
+    train_ns = {
+        c: int(true_distribution[c]["n"] * reduce_frac)
+        if reduce_frac is not None
+        else true_distribution[c]["n"]
+        for c in class_ids
+    }
+    train_subsets = {c: true_points_by_class[c][: train_ns[c]] for c in class_ids}
 
-    # Est class 2
-    est_mean_2 = est_sample_mean(true_points_by_class[2])
-    est_cov_2 = est_sample_cov(true_points_by_class[2], est_mean_2)
+    est_mean_1 = est_sample_mean(train_subsets[1])
+    est_cov_1 = est_sample_cov(train_subsets[1], est_mean_1)
+    est_mean_2 = est_sample_mean(train_subsets[2])
+    est_cov_2 = est_sample_cov(train_subsets[2], est_mean_2)
 
-    # Est class-conditional distribution
+    # Est class-conditional distribution — keep n and p at true values so the
+    # test-set split and prior ratio are not distorted by reduce_frac
     distribution = {
         1: {
-            "n": class_one_n,
+            "n": true_distribution[1]["n"],
             "mean": est_mean_1,
             "cov": est_cov_1,
         },
         2: {
-            "n": class_two_n,
+            "n": true_distribution[2]["n"],
             "mean": est_mean_2,
             "cov": est_cov_2,
         },
@@ -221,9 +229,10 @@ def main(case: int = 3) -> None:
         for c in class_ids
     }
 
-    # Add priors
+    # Use true priors — they represent real-world class frequencies,
+    # not the (possibly reduced) training sample size
     for c in class_ids:
-        distribution[c]["p"] = distribution[c]["n"] / total
+        distribution[c]["p"] = true_distribution[c]["p"]
 
     labels = {c: np.full(distribution[c]["n"], c) for c in class_ids}
 
@@ -231,9 +240,14 @@ def main(case: int = 3) -> None:
     np.vstack([points_by_class[c] for c in class_ids])
     labels = np.concatenate([labels[c] for c in class_ids])
 
-    # Discriminate
-    print("==From true distribution:")
-    discriminate(
+    base = {
+        "case": case,
+        "reduce_frac": reduce_frac,
+        "train_n_class1": train_ns[1],
+        "train_n_class2": train_ns[2],
+    }
+
+    true_metrics = discriminate(
         true_points,
         true_distribution,
         true_labels_all,
@@ -242,8 +256,7 @@ def main(case: int = 3) -> None:
         fig_dir,
         case=case,
     )
-    print("==From estimated distribution:")
-    discriminate(
+    est_metrics = discriminate(
         true_points,
         distribution,
         true_labels_all,
@@ -253,8 +266,24 @@ def main(case: int = 3) -> None:
         case=case,
     )
 
+    return [
+        {**base, "distribution": "true", **true_metrics},
+        {**base, "distribution": "estimated", **est_metrics},
+    ]
+
 
 if __name__ == "__main__":
     cases = (1, 3)
+    fracs = (None, 0.0001, 0.001, 0.01, 0.1)
+    rows = []
     for case in cases:
-        main(case)
+        for frac in fracs:
+            rows.extend(main(case, reduce_frac=frac))
+
+    csv_path = pathlib.Path("attachments") / "experiments_1_2_results.csv"
+    fieldnames = list(rows[0].keys())
+    with csv_path.open("w", newline="") as f:
+        writer = csv.DictWriter(f, fieldnames=fieldnames)
+        writer.writeheader()
+        writer.writerows(rows)
+    print(f"Saved results as csv to: {csv_path}")
