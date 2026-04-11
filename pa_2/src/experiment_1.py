@@ -2,7 +2,9 @@ import pathlib
 
 import numpy as np
 from bayes import (
+    bhattacharyya_error_bound_case_one,
     bhattacharyya_error_bound_case_three,
+    discriminate_case_one,
     discriminate_case_three,
     est_sample_cov,
     est_sample_mean,
@@ -11,19 +13,45 @@ from generate_normals import generate_2d_gas_data, plot_2d_gas
 from seed import set_all_seeds
 
 
-def discriminate(points, distribution, labels, total, points_by_class, fig_dir) -> None:
-    g1 = discriminate_case_three(
-        x=points,
-        p=distribution[1]["p"],
-        mean=distribution[1]["mean"],
-        cov=distribution[1]["cov"],
-    )
-    g2 = discriminate_case_three(
-        x=points,
-        p=distribution[2]["p"],
-        mean=distribution[2]["mean"],
-        cov=distribution[2]["cov"],
-    )
+def discriminate(
+    points,
+    distribution,
+    labels,
+    total,
+    points_by_class,
+    fig_dir,
+    case: int = 3,
+) -> None:
+
+    if case == 3:
+        g1 = discriminate_case_three(
+            x=points,
+            p=distribution[1]["p"],
+            mean=distribution[1]["mean"],
+            cov=distribution[1]["cov"],
+        )
+        g2 = discriminate_case_three(
+            x=points,
+            p=distribution[2]["p"],
+            mean=distribution[2]["mean"],
+            cov=distribution[2]["cov"],
+        )
+    elif case == 1:
+        g1 = discriminate_case_one(
+            x=points,
+            p_i=distribution[1]["p"],
+            mean=distribution[1]["mean"],
+            std=np.sqrt(distribution[1]["cov"][0]),
+        )
+        g2 = discriminate_case_one(
+            x=points,
+            p_i=distribution[2]["p"],
+            mean=distribution[2]["mean"],
+            std=np.sqrt(distribution[2]["cov"][0]),
+        )
+    else:
+        msg = f"Unsupported case: {case}"
+        raise ValueError(msg)
     predictions = np.where(g1 > g2, 1, 2)
 
     # Class 1 error rate
@@ -50,18 +78,32 @@ def discriminate(points, distribution, labels, total, points_by_class, fig_dir) 
 
         From g_1(x) = g_2(x)
         """
-        g1_grid = discriminate_case_three(
-            x=grid_pts,
-            p=distribution[1]["p"],
-            mean=distribution[1]["mean"],
-            cov=distribution[1]["cov"],
-        )
-        g2_grid = discriminate_case_three(
-            x=grid_pts,
-            p=distribution[2]["p"],
-            mean=distribution[2]["mean"],
-            cov=distribution[2]["cov"],
-        )
+        if case == 3:
+            g1_grid = discriminate_case_three(
+                x=grid_pts,
+                p=distribution[1]["p"],
+                mean=distribution[1]["mean"],
+                cov=distribution[1]["cov"],
+            )
+            g2_grid = discriminate_case_three(
+                x=grid_pts,
+                p=distribution[2]["p"],
+                mean=distribution[2]["mean"],
+                cov=distribution[2]["cov"],
+            )
+        else:
+            g1_grid = discriminate_case_one(
+                x=grid_pts,
+                p_i=distribution[1]["p"],
+                mean=distribution[1]["mean"],
+                std=np.sqrt(distribution[1]["cov"][0]),
+            )
+            g2_grid = discriminate_case_one(
+                x=grid_pts,
+                p_i=distribution[2]["p"],
+                mean=distribution[2]["mean"],
+                std=np.sqrt(distribution[2]["cov"][0]),
+            )
         return g1_grid - g2_grid
 
     # Plot w/ decision boundary
@@ -72,33 +114,44 @@ def discriminate(points, distribution, labels, total, points_by_class, fig_dir) 
     )
 
     # Calculate upper bound
-    b_error = bhattacharyya_error_bound_case_three(
-        mean1=distribution[1]["mean"],
-        mean2=distribution[2]["mean"],
-        cov1=distribution[1]["cov"],
-        cov2=distribution[2]["cov"],
-        p1=distribution[1]["p"],
-        p2=distribution[2]["p"],
-    )
+    if case == 3:
+        b_error = bhattacharyya_error_bound_case_three(
+            mean1=distribution[1]["mean"],
+            mean2=distribution[2]["mean"],
+            cov1=distribution[1]["cov"],
+            cov2=distribution[2]["cov"],
+            p1=distribution[1]["p"],
+            p2=distribution[2]["p"],
+        )
+    else:
+        b_error = bhattacharyya_error_bound_case_one(
+            mean1=distribution[1]["mean"],
+            mean2=distribution[2]["mean"],
+            covariance=np.diag(distribution[1]["cov"]),
+            p1=distribution[1]["p"],
+            p2=distribution[2]["p"],
+        )
     print(f"Error upper bound: {b_error * 100:.2f}%")
 
 
-def main() -> None:
+def main(case: int = 3) -> None:
     rng1 = set_all_seeds(42)
     rng2 = np.random.default_rng(43)
     fig_dir = pathlib.Path("attachments")
+    class_one_n = 60000
+    class_two_n = 140000
 
-    print("\n" + "=" * 5 + "Experiment 1" + "=" * 5)
+    print("\n" + "=" * 5 + f"Experiment 1, Case {case}" + "=" * 5)
 
     # True class-conditional distribution
     true_distribution = {
         1: {
-            "n": 60000,
+            "n": class_one_n,
             "mean": np.array([1, 1]),
             "cov": np.array([[1.0, 0.0], [0.0, 1.0]]),
         },
         2: {
-            "n": 140000,
+            "n": class_two_n,
             "mean": np.array([4, 4]),
             "cov": np.array([[1.0, 0.0], [0.0, 1.0]]),
         },
@@ -139,16 +192,23 @@ def main() -> None:
     # Est class-conditional distribution
     distribution = {
         1: {
-            "n": 60000,
+            "n": class_one_n,
             "mean": est_mean_1,
             "cov": est_cov_1,
         },
         2: {
-            "n": 140000,
+            "n": class_two_n,
             "mean": est_mean_2,
             "cov": est_cov_2,
         },
     }
+
+    # Case 1 and 2 assume zeros on the diagonal for our problem
+    # we can just remove the off diagonal elements
+    if case != 3:
+        for c in class_ids:
+            true_distribution[c]["cov"] = np.diag(true_distribution[c]["cov"])
+            distribution[c]["cov"] = np.diag(distribution[c]["cov"])
 
     # Generate est points
     points_by_class = {
@@ -172,7 +232,7 @@ def main() -> None:
     labels = np.concatenate([labels[c] for c in class_ids])
 
     # Discriminate
-    print("## From true distribution:")
+    print("==From true distribution:")
     discriminate(
         true_points,
         true_distribution,
@@ -180,8 +240,9 @@ def main() -> None:
         total,
         true_points_by_class,
         fig_dir,
+        case=case,
     )
-    print("## From estimated distribution:")
+    print("==From estimated distribution:")
     discriminate(
         true_points,
         distribution,
@@ -189,8 +250,11 @@ def main() -> None:
         total,
         points_by_class,
         fig_dir,
+        case=case,
     )
 
 
 if __name__ == "__main__":
-    main()
+    cases = (1, 3)
+    for case in cases:
+        main(case)

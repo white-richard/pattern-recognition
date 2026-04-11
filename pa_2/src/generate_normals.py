@@ -32,7 +32,8 @@ def generate_2d_gas_data(
     """Generate 2D Gaussian data using a covariance matrix and gaussian_deviate."""
     points = np.zeros((num_samples, 2))
 
-    # Uhh we need to decompose the covariance matrix to fit in this
+    if covariance.ndim == 1:
+        covariance = np.diag(covariance)
     chol = np.linalg.cholesky(covariance)
 
     for idx in range(num_samples):
