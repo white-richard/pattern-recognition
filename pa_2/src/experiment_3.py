@@ -198,7 +198,8 @@ def main(img_space: str) -> None:
     plot_imgs(train_img, train_ref_img)
 
     sample_mean, sample_cov, c = estimate_face_model(train_img, train_ref_img, img_space=img_space)
-    thresholds = np.linspace(0, c, 20)
+    # c/20
+    thresholds = np.linspace(0, c, 21)
 
     test_names = ["Training_3.ppm", "Training_6.ppm"]
     metrics = evaluate_thresholds(
