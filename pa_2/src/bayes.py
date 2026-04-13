@@ -165,7 +165,33 @@ def est_sample_cov(samples: np.ndarray, mean: np.ndarray) -> np.ndarray:
     return difference.T @ difference / length  # d,d
 
 
-# def generate_points_from_mean_cov(mean: float, cov:)
+def maximum_gaus_value_c(cov: np.ndarray) -> float:
+    """Calculate the maximum value of the Gaussian distribution for a given covariance."""
+    det_cov = np.linalg.det(cov)
+    return 1.0 / (2 * np.pi * np.sqrt(det_cov))
+
+
+def mult_gaussian_discriminant(x, mean, cov):
+    """Calculate the multivariate Gaussian discriminant for given samples, mean, and covariance.
+
+    Formula from textbook.
+    """
+    d = 2
+
+    det_cov = np.linalg.det(cov)
+    inv_cov = np.linalg.inv(cov)
+
+    # c = 1 / (2 * pi * |cov|^1/2)
+    norm = 1.0 / ((2 * np.pi) ** (d / 2.0) * np.sqrt(det_cov))
+
+    # x - mean
+    x_minus_mean = x - mean
+
+    # -0.5 * (x-mean)^T * inv_cov * (x-mean)
+    exponent = -0.5 * np.sum(x_minus_mean @ inv_cov * x_minus_mean, axis=1)
+
+    return norm * np.exp(exponent)
+
 
 if __name__ == "__main__":
     # Known
