@@ -13,7 +13,24 @@ from seed import set_all_seeds
 
 
 def normalize_rgb_ycc(pixels: np.ndarray) -> np.ndarray:
-    pass
+    """Normalize rgb pixels to YCbCr space.
+
+    Y = 0.299R + 0.587G + 0.114B
+    Cb = -0.169R - 0.332G + 0.500B
+    Cr = 0.500R - 0.419G - 0.081B
+
+    Y is not needed and therefore discarded.
+    """
+    pixels = pixels.astype(np.float32)
+
+    r = pixels[:, 0]
+    g = pixels[:, 1]
+    b = pixels[:, 2]
+
+    cb = -0.169 * r - 0.332 * g + 0.500 * b
+    cr = 0.500 * r - 0.419 * g - 0.081 * b
+
+    return np.stack((cb, cr), axis=1)  # n x 2
 
 
 def normalize_rgb_chromatic(pixels: np.ndarray) -> np.ndarray:
@@ -185,7 +202,12 @@ def main(img_space: str) -> None:
 
     test_names = ["Training_3.ppm", "Training_6.ppm"]
     metrics = evaluate_thresholds(
-        data_dir, test_names, sample_mean, sample_cov, thresholds, img_space=img_space
+        data_dir,
+        test_names,
+        sample_mean,
+        sample_cov,
+        thresholds,
+        img_space=img_space,
     )
 
     avg_fpr = []
@@ -206,5 +228,5 @@ def main(img_space: str) -> None:
 
 
 if __name__ == "__main__":
-    img_space = "chromatic"  # chromatic | ycc
+    img_space = "ycc"  # chromatic | ycc
     main(img_space)
