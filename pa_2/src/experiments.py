@@ -1,4 +1,3 @@
-import csv
 import pathlib
 
 import numpy as np
@@ -143,8 +142,8 @@ def main(
     case: int = 3,
     reduce_frac: float | None = None,
 ) -> list[dict]:
-    rng1 = set_all_seeds(42)
-    rng2 = np.random.default_rng(43)
+    rng = set_all_seeds(42)
+    rng_est = np.random.default_rng(43)
     fig_dir = pathlib.Path("attachments")
     class_one_n = 60000
     class_two_n = 140000
@@ -172,13 +171,13 @@ def main(
 
     true_labels = {c: np.full(true_distribution[c]["n"], c) for c in class_ids}
 
-    # Generate points
+    # Generate points using the same rng sequence as pa_1 (seed 42, class 1 then class 2)
     true_points_by_class = {
         c: generate_2d_gas_data(
             true_distribution[c]["n"],
             mean=true_distribution[c]["mean"],
             covariance=true_distribution[c]["cov"],
-            rng=rng1 if c == 1 else rng2,  # Hacky
+            rng=rng,
         )
         for c in class_ids
     }
@@ -222,13 +221,13 @@ def main(
             true_distribution[c]["cov"] = np.diag(true_distribution[c]["cov"])
             distribution[c]["cov"] = np.diag(distribution[c]["cov"])
 
-    # Generate est points
+    # Generate est points using a separate rng (estimated distribution parameters differ from true)
     points_by_class = {
         c: generate_2d_gas_data(
             distribution[c]["n"],  # Still use the same count
             mean=distribution[c]["mean"],
             covariance=distribution[c]["cov"],
-            rng=rng1 if c == 1 else rng2,  # Hacky
+            rng=rng_est,
         )
         for c in class_ids
     }
@@ -294,16 +293,21 @@ if __name__ == "__main__":
             msg = f"Unsupported experiment: {expr}"
             raise ValueError(msg)
         cases = (1, 3)
-        fracs = (None, 0.0001, 0.001, 0.01, 0.1)
+        fracs = (None,) if expr == 1 else (None, 0.0001, 0.001, 0.01, 0.1)
         rows = []
         for case in cases:
             for frac in fracs:
                 rows.extend(main(mean=means, cov=covs, case=case, reduce_frac=frac))
 
-        csv_path = pathlib.Path("attachments") / f"experiments_{expr}_results.csv"
-        fieldnames = list(rows[0].keys())
-        with csv_path.open("w", newline="") as f:
-            writer = csv.DictWriter(f, fieldnames=fieldnames)
-            writer.writeheader()
-            writer.writerows(rows)
-        print(f"Saved results as csv to: {csv_path}")
+        print(f"\n{'='*70}")
+        print(f"Experiment {expr} Results")
+        print(f"{'='*70}")
+        for row in rows:
+            frac_label = f"{row['reduce_frac']}" if row["reduce_frac"] is not None else "full"
+            print(
+                f"  case={row['case']} | frac={frac_label:6s} | dist={row['distribution']:9s}"
+                f" | total_err={row['min_error_rate']*100:.2f}%"
+                f" | class1_err={row['class1_error_rate']*100:.2f}%"
+                f" | class2_err={row['class2_error_rate']*100:.2f}%"
+                f" | bound={row['error_upper_bound']*100:.2f}%"
+            )

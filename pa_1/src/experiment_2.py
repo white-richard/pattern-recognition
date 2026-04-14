@@ -6,7 +6,7 @@ from generate_normals import generate_2d_gas_data, plot_2d_gas
 from seed import set_all_seeds
 
 if __name__ == "__main__":
-    set_all_seeds(42)
+    rng = set_all_seeds(42)
     fig_dir = pathlib.Path("attachments")
 
     print("\n" + "=" * 5 + "Experiment 2" + "=" * 5)
@@ -30,8 +30,8 @@ if __name__ == "__main__":
     p2 = num_class2 / total
 
     # Generate out normal points
-    points1 = generate_2d_gas_data(num_class1, mean=mean_class1, covariance=cov1)
-    points2 = generate_2d_gas_data(num_class2, mean=mean_class2, covariance=cov2)
+    points1 = generate_2d_gas_data(num_class1, mean=mean_class1, covariance=cov1, rng=rng)
+    points2 = generate_2d_gas_data(num_class2, mean=mean_class2, covariance=cov2, rng=rng)
 
     # Stack our points and labels for distrimination
     points = np.vstack((points1, points2))
