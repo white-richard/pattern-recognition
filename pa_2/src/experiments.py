@@ -293,7 +293,7 @@ if __name__ == "__main__":
             msg = f"Unsupported experiment: {expr}"
             raise ValueError(msg)
         cases = (1, 3)
-        fracs = (None,) if expr == 1 else (None, 0.0001, 0.001, 0.01, 0.1)
+        fracs = (None, 0.0001, 0.001, 0.01, 0.1)
         rows = []
         for case in cases:
             for frac in fracs:
@@ -309,5 +309,4 @@ if __name__ == "__main__":
                 f" | total_err={row['min_error_rate']*100:.2f}%"
                 f" | class1_err={row['class1_error_rate']*100:.2f}%"
                 f" | class2_err={row['class2_error_rate']*100:.2f}%"
-                f" | bound={row['error_upper_bound']*100:.2f}%"
             )

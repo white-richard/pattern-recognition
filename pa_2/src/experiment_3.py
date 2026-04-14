@@ -186,6 +186,44 @@ def plot_roc_curve(avg_fpr: list[float], avg_fnr: list[float]) -> None:
     plt.show()
 
 
+def classify_image(img: np.ndarray, sample_mean: np.ndarray, sample_cov: np.ndarray, threshold: float, img_space: str) -> np.ndarray:
+    """Build classified image: skin pixels keep original RGB, non-skin pixels become white."""
+    h, w = img.shape[:2]
+    flat_img = img.reshape(-1, 3)
+
+    if img_space == "chromatic":
+        norm_flat = normalize_rgb_chromatic(flat_img)
+    elif img_space == "ycc":
+        norm_flat = normalize_rgb_ycc(flat_img)
+    else:
+        msg = f"Invalid image space: {img_space}"
+        raise ValueError(msg)
+
+    likelihoods = mult_gaussian_discriminant(norm_flat, sample_mean, sample_cov)
+    skin_mask = (likelihoods > threshold).reshape(h, w)
+
+    result = np.full_like(img, 255)
+    result[skin_mask] = img[skin_mask]
+    return result
+
+
+def plot_classified_vs_ref(classified: np.ndarray, ref_img: np.ndarray, title: str) -> None:
+    """Display classified image alongside the reference image."""
+    _fig, axes = plt.subplots(1, 2, figsize=(10, 4))
+
+    axes[0].imshow(classified)
+    axes[0].set_title("Classified")
+    axes[0].axis("off")
+
+    axes[1].imshow(ref_img)
+    axes[1].set_title("Reference")
+    axes[1].axis("off")
+
+    plt.suptitle(title)
+    plt.tight_layout()
+    plt.show()
+
+
 def main(img_space: str) -> None:
     set_all_seeds(42)
     data_dir = Path("Data_Prog2")
@@ -226,6 +264,14 @@ def main(img_space: str) -> None:
 
     print(f"Equal Error Rate Threshold: {best_threshold:.6f}")
     print(f"FPR: {avg_fpr[eer_idx]:.4f}, FNR: {avg_fnr[eer_idx]:.4f}")
+
+    for test_name in test_names:
+        test_path = data_dir / test_name
+        ref_path = get_ref_path(data_dir, test_path)
+        img = load_img(test_path)
+        ref_img = load_img(ref_path)
+        classified = classify_image(img, sample_mean, sample_cov, best_threshold, img_space)
+        plot_classified_vs_ref(classified, ref_img, title=test_name)
 
 
 if __name__ == "__main__":
