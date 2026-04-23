@@ -67,7 +67,7 @@ def main() -> None:
 
     # Calculate the small μ_i, v_i of A^T @ A
     # Then calculate the large λ_i, u_i of A @ A^T and normalize to unit
-    for dataset in datasets.values():
+    for name, dataset in datasets.items():
         A = np.stack(dataset["mean_sub_imgs"], axis=1)
         cov = A.T @ A
         # Assert cov is symmetric
@@ -81,7 +81,8 @@ def main() -> None:
         dataset["eigenvectors"] = u
 
         # Project each img onto the M Eigenfaces
-        dataset["projections"] = [u.T @ img for img in dataset["mean_sub_imgs"]]
+        # Eigen-coefficient/projection
+        dataset["projections"] = [img.T @ u for img in dataset["mean_sub_imgs"]]
 
         # Save dataset dict to file
         save_path = output_dir / f"{name}_dataset.npy"
