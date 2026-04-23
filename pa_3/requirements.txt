@@ -1,0 +1,5 @@
+numpy
+python-lsp-server
+matplotlib
+opencv-python
+Pillow
