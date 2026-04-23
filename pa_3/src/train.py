@@ -74,7 +74,7 @@ def main() -> None:
         cov = A.T @ A
         # Assert cov is symmetric
         assert np.allclose(cov, cov.T), "Covariance matrix is not symmetric"
-        w, v = compute_eigh(cov, k=10)
+        w, v = compute_eigh(cov, k=dataset["num_imgs"])
         u = A @ v
         u = u / np.linalg.norm(u, axis=0)
         # Assert u is orthonormal
