@@ -62,6 +62,8 @@ def main() -> None:
     # Flatten each image and calc it's mean-subtracted version
     for dataset in datasets.values():
         dataset["flat_imgs"] = [img.flatten() for img in dataset["imgs"]]
+        dataset["num_imgs"] = len(dataset["flat_imgs"])
+        dataset["n_pixels"] = dataset["flat_imgs"][0].shape[0]
         dataset["flat_avg_face"] = dataset["avg_face"].flatten()
         dataset["mean_sub_imgs"] = [img - dataset["flat_avg_face"] for img in dataset["flat_imgs"]]
 
@@ -89,6 +91,16 @@ def main() -> None:
         # Save dataset dict to file
         save_path = output_dir / f"{name}_dataset.npy"
         np.save(save_path, dataset)
+
+    # Test using Reconstruction
+    for name, dataset in datasets.items():
+        # Use mean subtracted img
+        # Reconstruct with all k eigenfaces and add back the mean face
+        i_hat = dataset["projections"][0] @ dataset["eigenvectors"].T + dataset["flat_avg_face"]
+        # Compute distance from face space using euclidean
+        dist = np.linalg.norm(i_hat - dataset["flat_avg_face"])
+        avg_dist = dist / dataset["n_pixels"]
+        print(f"Average reconstruction error for {name}: {avg_dist:.2f}")
 
 
 if __name__ == "__main__":
