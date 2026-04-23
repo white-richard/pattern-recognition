@@ -77,6 +77,8 @@ def main() -> None:
         u = u / np.linalg.norm(u, axis=0)
         # Assert u is orthonormal
         assert np.allclose(u.T @ u, np.eye(u.shape[1])), "Eigenvectors are not orthonormal"
+        # Assert Cu=λu
+        assert np.allclose(A @ A.T @ u, u * w), "Eigenvectors do not satisfy Cu=λu"
         dataset["eigenvalues"] = w
         dataset["eigenvectors"] = u
 
