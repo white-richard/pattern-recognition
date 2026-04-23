@@ -8,4 +8,5 @@ def main() -> None:
     datasets = np.load("attachments/datasets.npy", allow_pickle=True)
     
 if __name__ == "__main__":
+    print("=== Testing... ===")
     main()
