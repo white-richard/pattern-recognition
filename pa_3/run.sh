@@ -1,4 +1,5 @@
 #!/usr/bin/env sh
 set -e
 
-python train.py
+python src/train.py
+python src/test.py
