@@ -10,7 +10,8 @@ def load_img(path: pathlib.Path) -> np.ndarray | None:
     img = cv2.imread(str(path))
     if img is None:
         return None
-    return cv2.cvtColor(img, cv2.IMREAD_GRAYSCALE)
+    img = cv2.cvtColor(img, cv2.IMREAD_GRAYSCALE)
+    return img.astype(np.float64) / 255.0  # Normalize to [0, 1]
 
 
 def compute_eigh(mat: np.ndarray) -> np.ndarray:
@@ -75,9 +76,12 @@ def main() -> None:
 
         # Discard near-zero eigenvalues
         # otherwise, vectors break orthonormality
-        # thresh = w[0] * 1e-10
-        # mask = w > thresh
-        # w, v = w[mask], v[:, mask]
+        # These are small because they are numerical rounding
+        # errors
+        thresh = 1e-8
+        mask = w > thresh
+        w, v = w[mask], v[:, mask]
+        print(f"Discarded {np.sum(~mask)} near-zero eigenvalues")
 
         u = A @ v
         u = u / np.linalg.norm(u, axis=0)
@@ -89,13 +93,10 @@ def main() -> None:
         # (A A^T)u = A(A^T u) to prevent creating the large matrix
         lhs = A @ (A.T @ u)
         rhs = u * w
-        # Because the eignvalues can be very large, this assert fails due to precision issues where
-        # there is a large amount of numerical error
-        # assert np.allclose(A @ (A.T @ u), u * w), "Eigenvectors do not satisfy Cu=λu"
-        # So we have to relax the tolerance a lot but this should be fine since we only care
-        # about the top eigenvectors with much higher eigenvalues
-        assert np.allclose(lhs, rhs, rtol=1e-2, atol=1e-6)
-        print(f"Computed {u.shape[1]} eigenfaces for dataset with {dataset['num_imgs']} images and {dataset['n_pixels']} pixels")
+        assert np.allclose(lhs, rhs), "Eigenvectors do not satisfy Cu=λu"
+        print(
+            f"Computed {u.shape[1]} eigenfaces for dataset with {dataset['num_imgs']} images and {dataset['n_pixels']} pixels",
+        )
         dataset["eigenvalues"] = w
         dataset["eigenvectors"] = u
 
