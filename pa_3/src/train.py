@@ -59,6 +59,12 @@ def main() -> None:
 
     # Flatten each image and calc it's mean-subtracted version
     for dataset in datasets.values():
+        # Read person id from filename and store labels
+        dataset["labels"] = []
+        for img_path in dataset["dir"].glob("*.pgm"):
+            person_id = img_path.stem.split("_")[0]
+            dataset["labels"].append(person_id)
+
         dataset["flat_imgs"] = [img.flatten() for img in dataset["imgs"]]
         dataset["num_imgs"] = len(dataset["flat_imgs"])
         dataset["n_pixels"] = dataset["flat_imgs"][0].shape[0]
