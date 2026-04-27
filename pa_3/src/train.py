@@ -42,7 +42,7 @@ def load_feret(datasets: dict) -> dict:
 
 
 def main() -> None:
-    output_dir = pathlib.Path("attachments")
+    output_dir = pathlib.Path("attachments/train")
     output_dir.mkdir(exist_ok=True)
     datasets = {
         "fa_H": {"imgs": [], "dir": pathlib.Path("data/fa_H")},
