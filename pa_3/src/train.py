@@ -69,7 +69,7 @@ def main() -> None:
     # Then calculate the large λ_i, u_i of A @ A^T and normalize to unit
     for dataset in datasets.values():
         A = np.stack(dataset["mean_sub_imgs"], axis=1)
-        cov = A.T @ A
+        cov = (A.T @ A) / dataset["num_imgs"]
         # Assert cov is symmetric
         assert np.allclose(cov, cov.T), "Covariance matrix is not symmetric"
         w, v = compute_eigh(cov)
@@ -92,6 +92,7 @@ def main() -> None:
         # Assert Cu=λu
         # (A A^T)u = A(A^T u) to prevent creating the large matrix
         lhs = A @ (A.T @ u)
+        lhs = lhs / dataset["num_imgs"]
         rhs = u * w
         assert np.allclose(lhs, rhs), "Eigenvectors do not satisfy Cu=λu"
         print(
