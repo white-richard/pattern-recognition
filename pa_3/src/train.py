@@ -29,10 +29,12 @@ def compute_eigh(mat: np.ndarray) -> np.ndarray:
 def load_feret(datasets: dict) -> dict:
     """Load the FERET dataset into dictionary."""
     for dataset in datasets.values():
-        for img_path in dataset["dir"].glob("*.pgm"):
+        dataset["labels"] = []
+        for img_path in sorted(dataset["dir"].glob("*.pgm")):
             img = load_img(img_path)
             if img is not None:
                 dataset["imgs"].append(img)
+                dataset["labels"].append(img_path.stem.split("_")[0])
             else:
                 msg = f"Failed to load image at {img_path}"
                 raise ValueError(msg)
@@ -42,7 +44,7 @@ def load_feret(datasets: dict) -> dict:
 
 
 def main() -> None:
-    output_dir = pathlib.Path("attachments/train")
+    output_dir = pathlib.Path("attachments")
     output_dir.mkdir(exist_ok=True)
     datasets = {
         "fa_H": {"imgs": [], "dir": pathlib.Path("data/fa_H")},
@@ -54,25 +56,12 @@ def main() -> None:
     }
     datasets = load_feret(datasets)
 
-    # Remove the first 50 subjects from fa2_H
-    fa2_H_labels = []
-    for img_path in datasets["fa2_H"]["dir"].glob("*.pgm"):
-        person_id = img_path.stem.split("_")[0]
-        fa2_H_labels.append(person_id)
-    fa2_H_labels = np.array(fa2_H_labels)
-    mask = fa2_H_labels.astype(int) > 140
-    datasets["fa2_H"]["imgs"] = [img for img, m in zip(datasets["fa2_H"]["imgs"], mask) if m]
-    print(f"Removed {np.sum(~mask)} images from fa2_H")
-
-    # Remove the first 50 subjects from fa2_L
-    fa2_L_labels = []
-    for img_path in datasets["fa2_L"]["dir"].glob("*.pgm"):
-        person_id = img_path.stem.split("_")[0]
-        fa2_L_labels.append(person_id)
-    fa2_L_labels = np.array(fa2_L_labels)
-    mask = fa2_L_labels.astype(int) > 140
-    datasets["fa2_L"]["imgs"] = [img for img, m in zip(datasets["fa2_L"]["imgs"], mask) if m]
-    print(f"Removed {np.sum(~mask)} images from fa2_L")
+    for name in ("fa2_H", "fa2_L"):
+        labels = np.array(datasets[name]["labels"])
+        mask = labels.astype(int) > 140
+        datasets[name]["imgs"] = [img for img, m in zip(datasets[name]["imgs"], mask) if m]
+        datasets[name]["labels"] = [lbl for lbl, m in zip(datasets[name]["labels"], mask) if m]
+        print(f"Removed {np.sum(~mask)} images from {name}")
 
     # Store average face for each dataset
     for name, dataset in datasets.items():
@@ -81,12 +70,6 @@ def main() -> None:
 
     # Flatten each image and calc it's mean-subtracted version
     for dataset in datasets.values():
-        # Read person id from filename and store labels
-        dataset["labels"] = []
-        for img_path in dataset["dir"].glob("*.pgm"):
-            person_id = img_path.stem.split("_")[0]
-            dataset["labels"].append(person_id)
-
         dataset["flat_imgs"] = [img.flatten() for img in dataset["imgs"]]
         dataset["num_imgs"] = len(dataset["flat_imgs"])
         dataset["n_pixels"] = dataset["flat_imgs"][0].shape[0]
