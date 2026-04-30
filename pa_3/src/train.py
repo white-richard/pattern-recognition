@@ -46,11 +46,22 @@ def main() -> None:
     output_dir.mkdir(exist_ok=True)
     datasets = {
         "fa_H": {"imgs": [], "dir": pathlib.Path("data/fa_H")},
-        "fa_L": {"imgs": [], "dir": pathlib.Path("data/fa_L")},
+        "fa2_H": {"imgs": [], "dir": pathlib.Path("data/fa_H")},
+        "fa2_L": {"imgs": [], "dir": pathlib.Path("data/fa_L")},
         "fb_H": {"imgs": [], "dir": pathlib.Path("data/fb_H")},
         "fb_L": {"imgs": [], "dir": pathlib.Path("data/fb_L")},
     }
     datasets = load_feret(datasets)
+
+    # Remove the first 50 subjects from fa2_H
+    fa2_H_labels = []
+    for img_path in datasets["fa2_H"]["dir"].glob("*.pgm"):
+        person_id = img_path.stem.split("_")[0]
+        fa2_H_labels.append(person_id)
+    fa2_H_labels = np.array(fa2_H_labels)
+    mask = fa2_H_labels.astype(int) > 140
+    datasets["fa2_H"]["imgs"] = [img for img, m in zip(datasets["fa2_H"]["imgs"], mask) if m]
+    print(f"Removed {np.sum(~mask)} images from fa2_H")
 
     # Store average face for each dataset
     for name, dataset in datasets.items():
