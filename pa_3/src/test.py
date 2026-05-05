@@ -235,8 +235,8 @@ def main(*, train: str, test: str, pc_info: float, r: int = 5) -> None:
 if __name__ == "__main__":
     print("=== Testing... ===")
 
-    train = "fa2_L"
-    test = "fb_L"
+    train = "fa_H"
+    test = "fb_H"
     # pc_info = float(input("Enter the amount of information to be preserved (i.e. 0.8): "))
     pc_info = 0.8
     r = 50

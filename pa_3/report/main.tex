@@ -130,6 +130,7 @@ the $K$ eigenfaces to compute the eign-coefficients $\omega_k$ as follows:
 \begin{equation}
 	\omega_k = u_k^T \Phi_i
 \end{equation}
+\label{eq:eigen_coefficients}
 And $\Omega^T = [\omega_1, \omega_2, \ldots, \omega_K]$ can be stacked to represent the image
 in the new face space.
 
@@ -162,6 +163,7 @@ or the Mahalanobis distance:
 \begin{equation}
 	d_M = \sqrt{(\Omega - \Omega_i)^T C^{-1} (\Omega - \Omega_i)}
 \end{equation}
+\label{eq:mahalanobis}
 where $C$ is the covariance matrix of the eigen-coefficients. The Mahalanobis distance
 accounts for the variance in the data and can provide better discrimination between different
 faces. When images are projected to face space, the scale of the eigen-coefficients can vary
@@ -201,14 +203,104 @@ which can provide more discriminant features for recognition.
 % findings, and reference any figures or tables generated (i.e., using figure/table captions) to illustrate
 % your results. For clarity, the results for each part must be presented in a separate subsection.
 
+The experiments were conducted using the FERET face database which contains a gallery set of
+1204 images $Fa$ and a query set of 1196 images $Fb$ with 866 overlapping identities. Two sets of
+resolutions were used for the experiments: 16x20 and 48x60 where the low resolution dataset will
+be denoted with a subscript L and the high resolution dataset with H.
+
 % ── Experiment 1 ────────────────────────────────────────────
 \subsection{Experiment (a)}
 
+In this set of experiments, the $Fa_H$ gallery dataset is used to compute the eigenfaces and the $Fb_H$
+dataset is used as the query set.
+
 \subsubsection{a.I}
+
+\begin{figure}[htbp]
+	\centering
+	\begin{subfigure}[t]{0.32\textwidth}
+		\centering
+		\includegraphics[width=\textwidth,trim=0 70 0 70,clip]{../attachments/fa_H_average_face.png}
+		\caption{Average face from the $Fa_H$ gallery dataset.}
+		\label{fig:fa_h_average_face}
+	\end{subfigure}
+	\hfill
+	\begin{minipage}[t]{0.66\textwidth}
+		\centering
+		\begin{subfigure}[t]{\textwidth}
+			\centering
+			\includegraphics[width=\textwidth,trim=0 480 0 480,clip]{../attachments/fa_H_eigenfaces.png}
+			\caption{Leading eigenfaces.}
+			\label{fig:fa_h_eigenfaces}
+		\end{subfigure}
+
+		\vspace{0.6em}
+
+		\begin{subfigure}[t]{\textwidth}
+			\centering
+			\includegraphics[width=\textwidth,trim=0 480 0 480,clip]{../attachments/fa_H_eigenfaces_small.png}
+			\caption{Leading eigenfaces.}
+			\label{fig:fa_h_eigenfaces_small}
+		\end{subfigure}
+	\end{minipage}
+
+	\caption{Average face and eigenfaces for the $Fa_H$ gallery dataset.}
+	\label{fig:fa_h_average_and_eigenfaces}
+\end{figure}
+
+The average face computed from the $Fa_H$ gallery dataset is shown in \ref{fig:fa_h_average_face}.
+The average face captures the general structure of a face but lacks distinct features that can be
+used for recognition. The leading eigenfaces are shown in \ref{fig:fa_h_eigenfaces} and
+\ref{fig:fa_h_eigenfaces_small}. The first few eigenfaces capture the most significant
+variations in the dataset, such as overall lighting and pose, while the later eigenfaces capture finer details.
 
 \subsubsection{a.II}
 
+\begin{figure}[htbp]
+	\centering
+	\includegraphics[width=0.6\textwidth]{../attachments/fa_H_to_fb_H_cmc.png}
+	\caption{CMC curves for the $Fa_H$ gallery and $Fb_H$ query set using Mahalanobis distance.
+		The rank varies from 1 to 50. The curve shows the recognition rate increases monotonically as
+		the rank increases and reaches approximately 89\% accuracy.}
+	\label{fig:fa_h_to_fb_h_cmc}
+\end{figure}
+
+In this experiment, the top eigenfaces which preserve 80\% of the information from the
+original data are used to compute the CMC curve. Each image's eigen-coefficients $\omega_k$
+are computed and the Mahalanobis distance is used to find the closest match in the gallery dataset.
+The CMC curve is shown in \ref{fig:fa_h_to_fb_h_cmc} and displays a recognition rate of
+approximately 55\% at rank 1, which indicates that the system correctly identifies the
+correct match as the closest in about 55\% of the cases. The recognition rate increases
+as the rank increases, reaching almost 80\% by rank 10. The system may not always find the
+correct match but out of 866 identities, it is able the rank it highly.
+
 \subsubsection{a.III}
+
+\begin{figure}[htbp]
+	\centering
+	\begin{subfigure}[t]{0.35\textwidth}
+		\centering
+		\includegraphics[width=\textwidth]{../attachments/fa_H_to_fb_H_correct_matches.png}
+		\caption{Correct matches from the $Fa_H$ gallery to the $Fb_H$ query set.}
+		\label{fig:fa_h_to_fb_h_correct_matches}
+	\end{subfigure}%
+	\hspace{0.02\textwidth}
+	\begin{subfigure}[t]{0.35\textwidth}
+		\centering
+		\includegraphics[width=\textwidth]{../attachments/fa_H_to_fb_H_incorrect_matches.png}
+		\caption{Incorrect matches from the $Fa_H$ gallery to the $Fb_H$ query set.}
+		\label{fig:fa_h_to_fb_h_incorrect_matches}
+	\end{subfigure}
+
+	\caption{Examples of correct and incorrect matches when querying $Fb_H$ against the $Fa_H$ gallery.}
+	\label{fig:fa_h_to_fb_h_matches}
+\end{figure}
+
+Correct and incorrect matches are shown in
+\ref{fig:fa_h_to_fb_h_correct_matches} and \ref{fig:fa_h_to_fb_h_incorrect_matches} respectively.
+The correct matches show that the system is able to identify the same individual across different
+images, while the incorrect matches indicate cases where the system fails to recognize the correct
+identity, which is visibly not surprising as each failing match look highly similar.
 
 \subsubsection{a.IV}
 
