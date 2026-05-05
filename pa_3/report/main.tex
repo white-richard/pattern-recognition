@@ -1,0 +1,225 @@
+\documentclass[12pt, letterpaper]{article}
+
+% ── Packages ────────────────────────────────────────────────
+\usepackage[margin=1in]{geometry}
+\usepackage{setspace}
+\usepackage{parskip}
+\usepackage{titlesec}
+\usepackage{graphicx}
+\usepackage{amsmath, amssymb}
+\usepackage{booktabs}
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage{hyperref}
+\usepackage{fancyhdr}
+\usepackage{times}  % Times New Roman font
+\usepackage{microtype}
+\usepackage{enumitem}
+\usepackage{float}  % [H] figure placement
+\usepackage{multirow}
+
+% ── Hyperlink Styling ────────────────────────────────────────
+\hypersetup{
+    colorlinks = true,
+    linkcolor  = blue,
+    citecolor  = blue,
+    urlcolor   = blue,
+}
+
+% ── Section / Subsection Formatting ─────────────────────────
+\titleformat{\section}{\large\bfseries}{}{0em}{}[\titlerule]
+\titleformat{\subsection}{\normalsize\bfseries}{}{0em}{}
+\titleformat{\subsubsection}{\normalsize\itshape}{}{0em}{}
+
+% ── Header / Footer ─────────────────────────────────────────
+\pagestyle{fancy}
+\fancyhf{}
+\rhead{\small CS 679 Pattern Recognition}
+\lhead{\small Assignment 3}
+\cfoot{\thepage}
+\renewcommand{\headrulewidth}{0.4pt}
+
+% ── Spacing ─────────────────────────────────────────────────
+\onehalfspacing
+
+% ============================================================
+%  DOCUMENT
+% ============================================================
+\begin{document}
+
+% ── COVER PAGE ──────────────────────────────────────────────
+\begin{titlepage}
+	\centering
+	\vspace*{2cm}
+
+	{\LARGE \textbf{CS 679 Pattern Recognition}}\\[0.5cm]
+
+	{\Large \textbf{Assignment 3 - EigenFaces}}\\[0.5cm]
+
+	\vfill
+
+	{\large \textbf{Richard White}}\\[0.3cm]
+	{\normalsize May 4, 2026}\\[1cm]
+
+	\vfill
+
+	% ── Academic Integrity Statement ────────────────────────
+	\begin{minipage}{0.85\textwidth}
+		\small
+		\textit{``I declare that all material in this assignment is my own work except where there is clear
+			acknowledgment or reference to the work of others. I understand that both my report and code may be
+			subjected to plagiarism detection software, and fully accept all consequences if found responsible for
+			plagiarism, as explained in the syllabus, and described in UNR’s Academic Standards Policy: UAM
+			6,502.''}
+
+		\vspace{1cm}
+		\noindent\rule{6cm}{0.4pt}\\
+		Richard White
+	\end{minipage}
+
+	\vspace{2cm}
+\end{titlepage}
+
+% ── TABLE OF CONTENTS ───
+\tableofcontents
+\newpage
+
+% ============================================================
+%  SECTION 1 -- THEORY
+% ============================================================
+\section{Theory}
+
+\subsection{Face Space Construction}
+
+% This section covers the foundational steps for building the face space model during the training phase.
+
+% \paragraph{The Average Face}
+
+Face space construction utilizes Principal Component Analysis (PCA) to identify the
+key features that capture the most variance in the training images.
+
+Given a set of training images $I_1, I_2, \ldots, I_n$, the average face is computed as:
+$\bar{I} = \frac{1}{n} \sum_{i=1}^n I_i$. For each image, compute the mean-subtracted image
+$\Phi_i = I_i - \bar{I}$ so that the data is centered around the average face needed for PCA.
+The covariance matrix $C$ is then computed as
+
+\begin{equation}
+	C = AA^T = \frac{1}{n} \sum_{i=1}^n \Phi_i \Phi_i^T
+\end{equation}
+
+where $A = [\Phi_1, \Phi_2, \ldots, \Phi_n]$. For PCA, the eigenvectors and eigenvalues must be
+computed but the operation $AA^T$ is large and intractable. Instead, it can be shown that the
+$N^2$ eigenvectors $v_l$ from $A^TA$ correspond to the largest from $AA^T$ with
+respect to the eigenvalues. Once $v_l$ is computed, it must be transformed back to the original
+space to get the eigenvectors $u_l$
+\begin{equation}
+	u_l = \sum{k=1}^N v_{lk} \Phi_k
+\end{equation}
+
+The eigenvectors of $C$, $u_l$, are the eigenfaces, which form the basis of the face space.
+Not all eigenfaces are needed to represent face space, so the top $K$ principal components
+that retain a certain percentage of information from the original data.
+
+\subsection{Image Reconstruction}
+
+This section covers how images are represented in the new face space and how they can be
+reconstructed from the eigen-coefficients.
+
+Eigen-coefficients can be calculated by projecting the mean-subtracted images $\Phi_i$ onto
+the $K$ eigenfaces to compute the eign-coefficients $\omega_k$ as follows:
+\begin{equation}
+	\omega_k = u_k^T \Phi_i
+\end{equation}
+And $\Omega^T = [\omega_1, \omega_2, \ldots, \omega_K]$ can be stacked to represent the image
+in the new face space.
+
+The original image can be reconstructed from the eigen-coefficients and the average face as:
+\begin{equation}
+	\hat{I} = \sum_{k=1}^K \omega_k u_k + \bar{I}
+\end{equation}
+
+A given image can now be compared to the reconstructed image to determine how well it is
+represented in the face space. The distance between the original image and the reconstructed
+image can be computed using the Euclidean distance:
+\begin{equation}
+	d_E = \sqrt{\sum_{i=1}^N (I_i - \hat{I}_i)^2}
+\end{equation}
+\label{eq:euclidean}
+where $N$ is the number of pixels in the image. A smaller distance indicates a better
+reconstruction, while a larger distance indicates that the image is not well represented in the
+face space.
+
+\subsection{Experiment (a)}
+
+This section outlines how query images can be matched against gallery images to evaluate
+the performance of the face recognition system.
+
+The closest match of a given query image $q_i$ is found by computing the distance to all
+galley images $g_j$ in the face space and selecting the one with the smallest distance.
+The distance can be computed using the Euclidean distance \ref{eq:euclidean}
+or the Mahalanobis distance:
+
+\begin{equation}
+	d_M = \sqrt{(\Omega - \Omega_i)^T C^{-1} (\Omega - \Omega_i)}
+\end{equation}
+where $C$ is the covariance matrix of the eigen-coefficients. The Mahalanobis distance
+accounts for the variance in the data and can provide better discrimination between different
+faces. When images are projected to face space, the scale of the eigen-coefficients can vary
+significantly. If the Euclidean distance is used, it may be dominated by larger components that
+capture irrelevant variations (i.e. lighting). The Mahalanobis fixes this by accounting for the
+distribution of the data and scales the coordinates according the covariance matrix.
+
+To evaluate the performance of the facial recognition system, the Cumulative Match Characteristic
+(CMC) curve is used. The CMC curve plots the accuracy, or recognition rate, as the rank varies.
+The rank is the acceptable range in which a correct match can be found (i.e. rank 1 means the
+correct match must be the closest).
+
+\subsection{Experiment (b)}
+
+To identify intruders, a threshold can be defined on the distance between the query image and
+the closest gallery image in the face space. If the distance exceeds the threshold, the query
+image is classified as an intruder. The choice of threshold is critical, as it affects the
+trade-off between false positives (incorrectly classifying a legitimate user as an intruder)
+and false negatives (failing to identify an intruder). To evaluate the performance of the
+intruder detection system, the Receiver Operating Characteristic (ROC) is used. The ROC curve
+plots the true positive rate against the false positive rate as the threshold varies. The area
+under the ROC curve (AUC) can be used as a summary measure of the system's performance, with
+a higher AUC indicating better performance.
+
+\subsection{Experiment (c)}
+
+Varying the resolution of the input images can have significant effects on the performance
+of the face recognition system. Higher resolution images contain more detailed information,
+which can provide more discriminant features for recognition.
+
+% ============================================================
+%  SECTION 2 -- RESULTS AND DISCUSSION
+% ============================================================
+\section{Results and Discussion}
+
+% Present and discuss your results. Include sample results, discuss major
+% findings, and reference any figures or tables generated (i.e., using figure/table captions) to illustrate
+% your results. For clarity, the results for each part must be presented in a separate subsection.
+
+% ── Experiment 1 ────────────────────────────────────────────
+\subsection{Experiment (a)}
+
+\subsubsection{a.I}
+
+\subsubsection{a.II}
+
+\subsubsection{a.III}
+
+\subsubsection{a.IV}
+
+\subsubsection{a.V}
+
+\subsection{Experiment (b)}
+
+\subsection{Experiment (c)}
+
+\subsection{Experiment (d)}
+
+\subsection{Experiment (e)}
+
+\end{document}
