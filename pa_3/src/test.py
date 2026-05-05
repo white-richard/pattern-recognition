@@ -258,8 +258,8 @@ if __name__ == "__main__":
 
     train = "fa_L"
     test = "fb_L"
-    # pc_info = float(input("Enter the amount of information to be preserved (i.e. 0.8): "))
-    pc_info = 0.8
+    pc_info = float(input("Enter the amount of information to be preserved (i.e. 0.8): "))
+    # pc_info = 0.8
     r = 50
     save_combined_cmc = True
     pc_info_list = [0.8, 0.9, 0.95]

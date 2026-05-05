@@ -198,6 +198,7 @@ which can provide more discriminant features for recognition.
 %  SECTION 2 -- RESULTS AND DISCUSSION
 % ============================================================
 \section{Results and Discussion}
+\label{sec:results}
 
 % Present and discuss your results. Include sample results, discuss major
 % findings, and reference any figures or tables generated (i.e., using figure/table captions) to illustrate
@@ -210,6 +211,7 @@ be denoted with a subscript L and the high resolution dataset with H.
 
 % ── Experiment 1 ────────────────────────────────────────────
 \subsection{Experiment (a)}
+\label{sec:a}
 
 In this set of experiments, the $Fa_H$ gallery dataset is used to compute the eigenfaces and the $Fb_H$
 dataset is used as the query set.
@@ -375,6 +377,7 @@ too much information. The 90\% system strikes a good balance between them and is
 the correct match at a much higher 67\% of the time at rank 1.
 
 \subsection{Experiment (b)}
+\label{sec:b}
 
 \begin{figure}[h]
 	\centering
@@ -512,6 +515,26 @@ number of false positives would likely be overwhelming.
 	\label{fig:fa_l_to_fb_l_pc0p95_matches}
 \end{figure}
 
+This experiment repeats all from \ref{sec:a} with the $Fa_L$ gallery and $Fb_L$ query sets mentioned
+at the beginning of \ref{sec:results}. For brevity, only the most notable differences will be
+described.
+
+The smallest eigenfaces \ref{fig:fa_l_eigenfaces_small} from $Fa_L$ are no longer recognizable due
+to the lower resolution. The
+smallest eigenvectors have less meaningful directions of variance to capture and therefore are
+not able to pick up meaningful signal. The CMC curve \ref{fig:fa_l_to_fb_l_cmc} is now starting at
+a lower performance at rank
+1 but reaches a higher rank 50 performance. This is surprising but reveals that the higher resolution
+images may have provided too much information to rank images within the top 50. Notably in the
+example of correct and incorrect matches \ref{fig:fa_l_to_fb_l_matches}, it is difficult for a
+person to manually verify that
+the system is performing well or not due to the low resolution. From the combined CMC curve
+\ref{fig:fa_L_to_fb_L_cmc_combined}, observe that the 80\% curve is now decidedly worse than the
+others. And the 95\% effectively outperforms the rest, suggesting that every bit of information was
+needed to make the classifications. This may be surprising, but higher resolution images also come with
+more irrelevant information with the additional information. So before the higher 95\% curve provided
+too much information which hurt performance, but with lower resolution images it helped performance.
+
 \subsection{Experiment (d)}
 
 \begin{figure}[h]
@@ -521,6 +544,12 @@ number of false positives would likely be overwhelming.
 		95\% of the information is retained.}
 	\label{fig:fa2_L_to_fb_L_roc}
 \end{figure}
+
+The ROC curve \ref{fig:fa2_L_to_fb_L_roc} and noticeable changes after reducing the image resolution. In order to achieve an
+FPR of zero, the TPR must also effectively zero; Compared to the higher resolution images, this is
+a significant drop from around 20\% TPR to achieve the same FPR. Interestingly, there is no meaningful
+dip in performance at the FPR rate of 20\%, which is roughly the middle-point of TPR and FPR. 
+Perhaps this is 
 
 \subsection{Experiment (e)}
 
