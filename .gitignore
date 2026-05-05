@@ -1,5 +1,8 @@
 tmp/
+build
+*.log
 *.npy
+.DS_Store
 
 
 # Byte-compiled / optimized / DLL files
