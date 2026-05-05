@@ -402,6 +402,7 @@ demands a very high detection rate (e.g., >90\% TPR), the tradeoff is steep, and
 number of false positives would likely be overwhelming.
 
 \subsection{Experiment (c)}
+\label{sec:c}
 
 \begin{figure}[htbp]
 	\centering
@@ -536,6 +537,7 @@ more irrelevant information with the additional information. So before the highe
 too much information which hurt performance, but with lower resolution images it helped performance.
 
 \subsection{Experiment (d)}
+\label{sec:d}
 
 \begin{figure}[h]
 	\centering
@@ -548,9 +550,14 @@ too much information which hurt performance, but with lower resolution images it
 The ROC curve \ref{fig:fa2_L_to_fb_L_roc} and noticeable changes after reducing the image resolution. In order to achieve an
 FPR of zero, the TPR must also effectively zero; Compared to the higher resolution images, this is
 a significant drop from around 20\% TPR to achieve the same FPR. Interestingly, there is no meaningful
-dip in performance at the FPR rate of 20\%, which is roughly the middle-point of TPR and FPR. 
-Perhaps this is 
+dip in performance at the FPR rate of 20\%, which is roughly the middle-point of TPR and FPR.
+Perhaps this is due to there being enough information to have a balanced recognition system but
+not to have one that performs well at the extremes.
 
 \subsection{Experiment (e)}
+
+The effect of using low-resolution images was a meaningful loss in performance, but specifically
+in the extremes when more fine-grained capability was needed. Specific observations and differences are explained in
+\ref{sec:c} and \ref{sec:d}.
 
 \end{document}
