@@ -20,6 +20,7 @@ def save_match_examples(
     incorrect_pairs: list[tuple[int, int]],
     output_dir: pathlib.Path,
     prefix: str,
+    pc_info_tag: str,
 ) -> None:
     output_dir.mkdir(exist_ok=True)
 
@@ -44,11 +45,17 @@ def save_match_examples(
         plt.savefig(output_dir / filename)
         plt.close()
 
-    _save_pairs(correct_pairs, f"{prefix}_correct_matches.png")
-    _save_pairs(incorrect_pairs, f"{prefix}_incorrect_matches.png")
+    _save_pairs(correct_pairs, f"{prefix}{pc_info_tag}_correct_matches.png")
+    _save_pairs(incorrect_pairs, f"{prefix}{pc_info_tag}_incorrect_matches.png")
 
 
-def plot(datasets: dict, train: str, output_dir=pathlib.Path("attachments")) -> None:
+def plot(
+    datasets: dict,
+    train: str,
+    output_dir=pathlib.Path("attachments"),
+    *,
+    pc_info_tag: str,
+) -> None:
     output_dir.mkdir(exist_ok=True)
     train_ds = datasets[train]
 
@@ -61,7 +68,7 @@ def plot(datasets: dict, train: str, output_dir=pathlib.Path("attachments")) -> 
     plt.imshow(ef, cmap="gray")
     # plt.title("Average Face")
     plt.axis("off")
-    plt.savefig(output_dir / f"{train}_average_face.png")
+    plt.savefig(output_dir / f"{train}{pc_info_tag}_average_face.png")
     plt.close()
 
     # and The eigenfaces corresponding to the 10 largest eigenvalues
@@ -78,7 +85,7 @@ def plot(datasets: dict, train: str, output_dir=pathlib.Path("attachments")) -> 
         )
         # plt.title(f"Eigenface {i + 1}")
         plt.axis("off")
-    plt.savefig(output_dir / f"{train}_eigenfaces.png")
+    plt.savefig(output_dir / f"{train}{pc_info_tag}_eigenfaces.png")
     # The eigenfaces corresponding to the 10 smallest eigenvalues
     plt.figure(figsize=(20, 20))
     for i in range(n_show):
@@ -91,7 +98,7 @@ def plot(datasets: dict, train: str, output_dir=pathlib.Path("attachments")) -> 
         )
         # plt.title(f"Eigenface {num_components - i}")
         plt.axis("off")
-    plt.savefig(output_dir / f"{train}_eigenfaces_small.png")
+    plt.savefig(output_dir / f"{train}{pc_info_tag}_eigenfaces_small.png")
     plt.close()
 
 
@@ -103,6 +110,7 @@ def plot_roc(
     thresh_max: float,
     output_dir: pathlib.Path,
     prefix: str,
+    pc_info_tag: str,
 ) -> None:
     train_label_set = set(train_labels)
     is_intruder = np.array([lbl not in train_label_set for lbl in test_labels])
@@ -126,11 +134,19 @@ def plot_roc(
     plt.grid(True, linestyle="--")
     plt.xlim(0, 1)
     plt.ylim(0, 1)
-    plt.savefig(output_dir / f"{prefix}_roc.png")
+    plt.savefig(output_dir / f"{prefix}{pc_info_tag}_roc.png")
     plt.close()
 
 
-def main(*, train: str, test: str, pc_info: float, r: int = 5) -> None:
+def main(
+    *,
+    train: str,
+    test: str,
+    pc_info: float,
+    r: int = 5,
+    save_cmc: bool = True,
+) -> tuple[np.ndarray, np.ndarray]:
+    pc_info_tag = f"_pc{pc_info:.2f}".replace(".", "p")
 
     datasets = np.load("attachments/datasets.npy", allow_pickle=True).item()
     train_ds = datasets[train]
@@ -193,6 +209,7 @@ def main(*, train: str, test: str, pc_info: float, r: int = 5) -> None:
             thresh_max=thresh_max,
             output_dir=pathlib.Path("attachments"),
             prefix=f"{train}_to_{test}",
+            pc_info_tag=pc_info_tag,
         )
 
     total = len(test_labels)
@@ -208,15 +225,16 @@ def main(*, train: str, test: str, pc_info: float, r: int = 5) -> None:
     # Plot CMC curve for ranks 1 to r
     ranks = np.arange(1, r + 1)
     cmc = correct_at_k / total
-    plt.figure()
-    plt.plot(ranks, cmc, marker="o")
-    plt.xlabel("Rank")
-    plt.ylabel("Accuracy")
-    # plt.title(f"Comparative CMC Curve for {train} to {test}")
-    plt.grid(True, linestyle="--")
-    plt.ylim(cmc.min(), 1.0)
-    plt.savefig(pathlib.Path("attachments") / f"{train}_to_{test}_cmc.png")
-    plt.close()
+    if save_cmc:
+        plt.figure()
+        plt.plot(ranks, cmc, marker="o")
+        plt.xlabel("Rank")
+        plt.ylabel("Accuracy")
+        # plt.title(f"Comparative CMC Curve for {train} to {test}")
+        plt.grid(True, linestyle="--")
+        plt.ylim(cmc.min(), 1.0)
+        plt.savefig(pathlib.Path("attachments") / f"{train}_to_{test}{pc_info_tag}_cmc.png")
+        plt.close()
 
     save_match_examples(
         train_ds=train_ds,
@@ -227,19 +245,40 @@ def main(*, train: str, test: str, pc_info: float, r: int = 5) -> None:
         incorrect_pairs=incorrect_pairs,
         output_dir=pathlib.Path("attachments"),
         prefix=f"{train}_to_{test}",
+        pc_info_tag=pc_info_tag,
     )
 
-    plot(datasets, train)
+    plot(datasets, train, pc_info_tag=pc_info_tag)
+
+    return ranks, cmc
 
 
 if __name__ == "__main__":
     print("=== Testing... ===")
 
-    train = "fa_H"
-    test = "fb_H"
+    train = "fa_L"
+    test = "fb_L"
     # pc_info = float(input("Enter the amount of information to be preserved (i.e. 0.8): "))
     pc_info = 0.8
     r = 50
-    if not (0 < pc_info <= 1):
-        print("Invalid input. Please enter a number between 0 and 1.")
-    main(train=train, test=test, pc_info=pc_info, r=r)
+    save_combined_cmc = True
+    pc_info_list = [0.8, 0.9, 0.95]
+
+    if save_combined_cmc:
+        fig, ax = plt.subplots()
+        min_cmc = 1.0
+        for info in pc_info_list:
+            ranks, cmc = main(train=train, test=test, pc_info=info, r=r, save_cmc=False)
+            min_cmc = min(min_cmc, float(np.min(cmc)))
+            ax.plot(ranks, cmc, marker="o", label=f"pc_info={info:.2f}")
+        ax.set_xlabel("Rank")
+        ax.set_ylabel("Accuracy")
+        ax.grid(True, linestyle="--")
+        ax.set_ylim(min_cmc, 1.0)
+        ax.legend()
+        fig.savefig(pathlib.Path("attachments") / f"{train}_to_{test}_cmc_combined.png")
+        plt.close(fig)
+    else:
+        if not (0 < pc_info <= 1):
+            print("Invalid input. Please enter a number between 0 and 1.")
+        main(train=train, test=test, pc_info=pc_info, r=r)

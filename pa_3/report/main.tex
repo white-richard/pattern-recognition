@@ -259,7 +259,7 @@ variations in the dataset, such as overall lighting and pose, while the later ei
 \begin{figure}[htbp]
 	\centering
 	\includegraphics[width=0.6\textwidth]{../attachments/fa_H_to_fb_H_cmc.png}
-	\caption{CMC curves for the $Fa_H$ gallery and $Fb_H$ query set using Mahalanobis distance.
+	\caption{CMC curves for the $Fa_H$ gallery and $Fb_H$ query set using Mahalanobis distance at 80\% of information retained.
 		The rank varies from 1 to 50. The curve shows the recognition rate increases monotonically as
 		the rank increases and reaches approximately 89\% accuracy.}
 	\label{fig:fa_h_to_fb_h_cmc}
@@ -274,7 +274,7 @@ correct match as the closest in about 55\% of the cases. The recognition rate in
 as the rank increases, reaching almost 80\% by rank 10. The system may not always find the
 correct match but out of 866 identities, it is able the rank it highly.
 
-\subsubsection{a.III}
+\subsubsection{a.III \& a.IV}
 
 \begin{figure}[htbp]
 	\centering
@@ -292,25 +292,235 @@ correct match but out of 866 identities, it is able the rank it highly.
 		\label{fig:fa_h_to_fb_h_incorrect_matches}
 	\end{subfigure}
 
-	\caption{Examples of correct and incorrect matches when querying $Fb_H$ against the $Fa_H$ gallery.}
+	\caption{Examples of correct and incorrect matches when querying $Fb_H$ against the $Fa_H$ gallery.
+		80\% of the information is retained.}
 	\label{fig:fa_h_to_fb_h_matches}
 \end{figure}
 
+This experiment compares correctly and incorrectly matched images using a rank of 1.
 Correct and incorrect matches are shown in
 \ref{fig:fa_h_to_fb_h_correct_matches} and \ref{fig:fa_h_to_fb_h_incorrect_matches} respectively.
 The correct matches show that the system is able to identify the same individual across different
 images, while the incorrect matches indicate cases where the system fails to recognize the correct
-identity, which is visibly not surprising as each failing match look highly similar.
-
-\subsubsection{a.IV}
+identity, which is visibly not surprising as each failing match look highly similar. It is
+likely that the incorrect matches are due to similar poses or relative cropping of the face. The
+second image displays two people with similar poses and the third image shows two people that are
+similarly cropped to the frame of the image. The system may be confused by these similarities
+and fail to distinguish between which led to incorrect matches.
 
 \subsubsection{a.V}
 
+\begin{figure}[h]
+	\centering
+	\includegraphics[width=0.6\textwidth]{../attachments/fa_H_to_fb_H_cmc_combined.png}
+	\caption{CMC curves for the $Fa_H$ gallery and $Fb_H$ query set using
+		Mahalanobis distance at 80, 90, and 95\% information retained.}
+	\label{fig:fa_H_to_fb_H_cmc_combined}
+\end{figure}
+
+\begin{figure}[htbp]
+	\centering
+	\begin{subfigure}[t]{0.35\textwidth}
+		\centering
+		\includegraphics[width=\textwidth]{../attachments/fa_H_to_fb_H_pc0p90_correct_matches.png}
+		\caption{Correct matches from the $Fa_H$ gallery to the $Fb_H$ query set.}
+		\label{fig:fa_h_to_fb_h_pc0p90_correct_matches}
+	\end{subfigure}%
+	\hspace{0.02\textwidth}
+	\begin{subfigure}[t]{0.35\textwidth}
+		\centering
+		\includegraphics[width=\textwidth]{../attachments/fa_H_to_fb_H_pc0p90_incorrect_matches.png}
+		\caption{Incorrect matches from the $Fa_H$ gallery to the $Fb_H$ query set.}
+		\label{fig:fa_h_to_fb_h_pc0p90_incorrect_matches}
+	\end{subfigure}
+
+	\caption{Examples of correct and incorrect matches when querying $Fb_H$ against the $Fa_H$ gallery.
+		90\% of the information is retained.}
+	\label{fig:fa_h_to_fb_h_pc0p90_matches}
+\end{figure}
+
+\begin{figure}[htbp]
+	\centering
+	\begin{subfigure}[t]{0.35\textwidth}
+		\centering
+		\includegraphics[width=\textwidth]{../attachments/fa_H_to_fb_H_pc0p95_correct_matches.png}
+		\caption{Correct matches from the $Fa_H$ gallery to the $Fb_H$ query set.}
+		\label{fig:fa_h_to_fb_h_pc0p95_correct_matches}
+	\end{subfigure}%
+	\hspace{0.02\textwidth}
+	\begin{subfigure}[t]{0.35\textwidth}
+		\centering
+		\includegraphics[width=\textwidth]{../attachments/fa_H_to_fb_H_pc0p95_incorrect_matches.png}
+		\caption{Incorrect matches from the $Fa_H$ gallery to the $Fb_H$ query set.}
+		\label{fig:fa_h_to_fb_h_pc0p95_incorrect_matches}
+	\end{subfigure}
+
+	\caption{Examples of correct and incorrect matches when querying $Fb_H$ against the $Fa_H$ gallery.
+		95\% of the information is retained.}
+	\label{fig:fa_h_to_fb_h_pc0p95_matches}
+\end{figure}
+
+This experiment recreates those in a.II, a.III, and a.IV but with 90\% and 95\% of the information retained.
+The CMC curves for all three are shown in \ref{fig:fa_H_to_fb_H_cmc_combined} and the correct and incorrect
+matches for 90\% and 95\% are shown in \ref{fig:fa_h_to_fb_h_pc0p90_matches} and
+\ref{fig:fa_h_to_fb_h_pc0p95_matches} respectively.
+
+Observe in the CMC curves that the best performing system is the one with 90\% of the information
+retained. Marginally, the 80\% system performs worse than the prior at higher ranks and at earlier
+ranks it performs worse than the higher 95\% system. It may be surprising that the 95\% system
+does not consistently outperform the other systems, but this may be due to the fact that retaining
+extra information captures noise in the data that is not relevant for recognition. The 80\% system
+doesn't retain enough information to rank the correct match highly, while the 95\% system retains
+too much information. The 90\% system strikes a good balance between them and is able to rank
+the correct match at a much higher 67\% of the time at rank 1.
+
 \subsection{Experiment (b)}
+
+\begin{figure}[h]
+	\centering
+	\includegraphics[width=0.6\textwidth]{../attachments/fa2_H_to_fb_H_roc.png}
+	\caption{ROC curve for intruder detection using the $Fa_H$ gallery and $Fb_H$ query set.
+		95\% of the information is retained.}
+	\label{fig:fa2_H_to_fb_H_roc}
+\end{figure}
+
+This experiment tests the system's ability to identify intruders by setting a threshold on the
+distance between the query image and the closest gallery image in the face space. To do this,
+the first 50 subjects were removed from the $Fa_H$ gallery set and are designated the intruders.
+The ROC curve is used to evaluate the performance of the intruder detection system. The ROC curve
+plots the true positive rate against the false positive rate as the threshold varies. The area
+under the ROC curve (AUC) can be used as a summary measure of the system's performance, with a
+higher AUC indicating better performance.
+
+The ROC curve seen in \ref{fig:fa2_H_to_fb_H_roc} illustrates the tradeoff between the True
+Positive Rate (TPR) and False Positive Rate (FPR). The graph shows that if a scenario requires
+a low false positive rate of 20\%, the system can still achieve a 70\% TPR. However, if a scenario
+demands a very high detection rate (e.g., >90\% TPR), the tradeoff is steep, and the resulting
+number of false positives would likely be overwhelming.
 
 \subsection{Experiment (c)}
 
+\begin{figure}[htbp]
+	\centering
+	\begin{subfigure}[t]{0.32\textwidth}
+		\centering
+		\includegraphics[width=\textwidth,trim=0 70 0 70,clip]{../attachments/fa_L_average_face.png}
+		\caption{Average face from the $Fa_L$ gallery dataset.}
+		\label{fig:fa_l_average_face}
+	\end{subfigure}
+	\hfill
+	\begin{minipage}[t]{0.66\textwidth}
+		\centering
+		\begin{subfigure}[t]{\textwidth}
+			\centering
+			\includegraphics[width=\textwidth,trim=0 480 0 480,clip]{../attachments/fa_L_eigenfaces.png}
+			\caption{Leading eigenfaces.}
+			\label{fig:fa_l_eigenfaces}
+		\end{subfigure}
+
+		\vspace{0.6em}
+
+		\begin{subfigure}[t]{\textwidth}
+			\centering
+			\includegraphics[width=\textwidth,trim=0 480 0 480,clip]{../attachments/fa_L_eigenfaces_small.png}
+			\caption{Leading eigenfaces.}
+			\label{fig:fa_l_eigenfaces_small}
+		\end{subfigure}
+	\end{minipage}
+
+	\caption{Average face and eigenfaces for the $Fa_L$ gallery dataset.}
+	\label{fig:fa_l_average_and_eigenfaces}
+\end{figure}
+
+\begin{figure}[htbp]
+	\centering
+	\includegraphics[width=0.6\textwidth]{../attachments/fa_L_to_fb_L_pc0p80_cmc.png}
+	\caption{CMC curves for the $Fa_L$ gallery and $Fb_L$ query set using Mahalanobis distance at 80\% of information retained.
+		The rank varies from 1 to 50. The curve shows the recognition rate increases monotonically as
+		the rank increases and reaches approximately 89\% accuracy.}
+	\label{fig:fa_l_to_fb_l_cmc}
+\end{figure}
+
+\begin{figure}[htbp]
+	\centering
+	\begin{subfigure}[t]{0.35\textwidth}
+		\centering
+		\includegraphics[width=\textwidth]{../attachments/fa_L_to_fb_L_pc0p80_correct_matches.png}
+		\caption{Correct matches from the $Fa_L$ gallery to the $Fb_L$ query set.}
+		\label{fig:fa_l_to_fb_l_correct_matches}
+	\end{subfigure}%
+	\hspace{0.02\textwidth}
+	\begin{subfigure}[t]{0.35\textwidth}
+		\centering
+		\includegraphics[width=\textwidth]{../attachments/fa_L_to_fb_L_pc0p80_incorrect_matches.png}
+		\caption{Incorrect matches from the $Fa_L$ gallery to the $Fb_L$ query set.}
+		\label{fig:fa_l_to_fb_l_incorrect_matches}
+	\end{subfigure}
+
+	\caption{Examples of correct and incorrect matches when querying $Fb_L$ against the $Fa_L$ gallery.
+		80\% of the information is retained.}
+	\label{fig:fa_l_to_fb_l_matches}
+\end{figure}
+
+\begin{figure}[h]
+	\centering
+	\includegraphics[width=0.6\textwidth]{../attachments/fa_L_to_fb_L_cmc_combined.png}
+	\caption{CMC curves for the $Fa_L$ gallery and $Fb_L$ query set using
+		Mahalanobis distance at 80, 90, and 95\% information retained.}
+	\label{fig:fa_L_to_fb_L_cmc_combined}
+\end{figure}
+
+\begin{figure}[htbp]
+	\centering
+	\begin{subfigure}[t]{0.35\textwidth}
+		\centering
+		\includegraphics[width=\textwidth]{../attachments/fa_L_to_fb_L_pc0p90_correct_matches.png}
+		\caption{Correct matches from the $Fa_L$ gallery to the $Fb_L$ query set.}
+		\label{fig:fa_l_to_fb_l_pc0p90_correct_matches}
+	\end{subfigure}%
+	\hspace{0.02\textwidth}
+	\begin{subfigure}[t]{0.35\textwidth}
+		\centering
+		\includegraphics[width=\textwidth]{../attachments/fa_L_to_fb_L_pc0p90_incorrect_matches.png}
+		\caption{Incorrect matches from the $Fa_L$ gallery to the $Fb_L$ query set.}
+		\label{fig:fa_l_to_fb_l_pc0p90_incorrect_matches}
+	\end{subfigure}
+
+	\caption{Examples of correct and incorrect matches when querying $Fb_L$ against the $Fa_L$ gallery.
+		90\% of the information is retained.}
+	\label{fig:fa_l_to_fb_l_pc0p90_matches}
+\end{figure}
+
+\begin{figure}[htbp]
+	\centering
+	\begin{subfigure}[t]{0.35\textwidth}
+		\centering
+		\includegraphics[width=\textwidth]{../attachments/fa_L_to_fb_L_pc0p95_correct_matches.png}
+		\caption{Correct matches from the $Fa_L$ gallery to the $Fb_L$ query set.}
+		\label{fig:fa_l_to_fb_l_pc0p95_correct_matches}
+	\end{subfigure}%
+	\hspace{0.02\textwidth}
+	\begin{subfigure}[t]{0.35\textwidth}
+		\centering
+		\includegraphics[width=\textwidth]{../attachments/fa_L_to_fb_L_pc0p95_incorrect_matches.png}
+		\caption{Incorrect matches from the $Fa_L$ gallery to the $Fb_L$ query set.}
+		\label{fig:fa_l_to_fb_l_pc0p95_incorrect_matches}
+	\end{subfigure}
+
+	\caption{Examples of correct and incorrect matches when querying $Fb_L$ against the $Fa_L$ gallery.
+		95\% of the information is retained.}
+	\label{fig:fa_l_to_fb_l_pc0p95_matches}
+\end{figure}
+
 \subsection{Experiment (d)}
+
+\begin{figure}[h]
+	\centering
+	\includegraphics[width=0.6\textwidth]{../attachments/fa2_L_to_fb_L_roc.png}
+	\caption{ROC curve for intruder detection using the $Fa2_L$ gallery and $Fb_L$ query set.
+		95\% of the information is retained.}
+	\label{fig:fa2_L_to_fb_L_roc}
+\end{figure}
 
 \subsection{Experiment (e)}
 
