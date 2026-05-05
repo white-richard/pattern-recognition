@@ -94,7 +94,7 @@ def plot_umap_on_swiss_roll(
         metric=metric,
         n_epochs=n_epochs,
         init="spectral",
-        random_state=seed,
+        # random_state=seed,
     )
     x_umap = umap.fit_transform(x)
 
@@ -132,27 +132,27 @@ def plot_umap_on_swiss_roll(
         pts = x_umap[cluster]
         center = pts.mean(axis=0)
         radius = np.max(np.linalg.norm(pts - center, axis=1)) * 1.15
-        ax_2d.add_patch(
-            Circle(
-                center,
-                radius,
-                edgecolor="#d1495b",
-                facecolor="none",
-                linewidth=1.8,
-                alpha=0.9,
-                zorder=5,
-            ),
-        )
-        ax_2d.annotate(
-            "Local neighborhoods\npreserved",
-            xy=(center[0], center[1]),
-            xytext=(-90, 24),
-            textcoords="offset points",
-            ha="right",
-            arrowprops={"arrowstyle": "->", "color": "#333333"},
-            fontsize=11,
-            bbox={"boxstyle": "round,pad=0.35", "fc": "white", "ec": "#333333", "alpha": 0.9},
-        )
+        # ax_2d.add_patch(
+        #     Circle(
+        #         center,
+        #         radius,
+        #         edgecolor="#d1495b",
+        #         facecolor="none",
+        #         linewidth=1.8,
+        #         alpha=0.9,
+        #         zorder=5,
+        #     ),
+        # )
+        # ax_2d.annotate(
+        #     "Local neighborhoods\npreserved",
+        #     xy=(center[0], center[1]),
+        #     xytext=(-90, 24),
+        #     textcoords="offset points",
+        #     ha="right",
+        #     arrowprops={"arrowstyle": "->", "color": "#333333"},
+        #     fontsize=11,
+        #     bbox={"boxstyle": "round,pad=0.35", "fc": "white", "ec": "#333333", "alpha": 0.9},
+        # )
 
     fig.subplots_adjust(right=0.88, wspace=0.25)
     cax = fig.add_axes([0.9, 0.17, 0.02, 0.66])
