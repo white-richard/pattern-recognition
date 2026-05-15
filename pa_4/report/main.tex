@@ -1,0 +1,103 @@
+\documentclass[12pt, letterpaper]{article}
+
+% ── Packages ────────────────────────────────────────────────
+\usepackage[margin=1in]{geometry}
+\usepackage{setspace}
+\usepackage{parskip}
+\usepackage{titlesec}
+\usepackage{graphicx}
+\usepackage{amsmath, amssymb}
+\usepackage{booktabs}
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage{hyperref}
+\usepackage{fancyhdr}
+\usepackage{times}  % Times New Roman font
+\usepackage{microtype}
+\usepackage{enumitem}
+\usepackage{float}  % [H] figure placement
+\usepackage{multirow}
+
+% ── Hyperlink Styling ────────────────────────────────────────
+\hypersetup{
+    colorlinks = true,
+    linkcolor  = blue,
+    citecolor  = blue,
+    urlcolor   = blue,
+}
+
+% ── Section / Subsection Formatting ─────────────────────────
+\titleformat{\section}{\large\bfseries}{}{0em}{}[\titlerule]
+\titleformat{\subsection}{\normalsize\bfseries}{}{0em}{}
+\titleformat{\subsubsection}{\normalsize\itshape}{}{0em}{}
+
+% ── Header / Footer ─────────────────────────────────────────
+\pagestyle{fancy}
+\fancyhf{}
+\rhead{\small CS 679 Pattern Recognition}
+\lhead{\small Assignment 4}
+\cfoot{\thepage}
+\renewcommand{\headrulewidth}{0.4pt}
+
+% ── Spacing ─────────────────────────────────────────────────
+\onehalfspacing
+
+% ============================================================
+%  DOCUMENT
+% ============================================================
+\begin{document}
+
+% ── COVER PAGE ──────────────────────────────────────────────
+\begin{titlepage}
+	\centering
+	\vspace*{2cm}
+
+	{\LARGE \textbf{CS 679 Pattern Recognition}}\\[0.5cm]
+
+	{\Large \textbf{Assignment 4 - Gender Classification}}\\[0.5cm]
+
+	\vfill
+
+	{\large \textbf{Richard White}}\\[0.3cm]
+	{\normalsize May 15, 2026}\\[1cm]
+
+	\vfill
+
+	% ── Academic Integrity Statement ────────────────────────
+	\begin{minipage}{0.85\textwidth}
+		\small
+		\textit{``I declare that all material in this assignment is my own work except where there is clear
+			acknowledgment or reference to the work of others. I understand that both my report and code may be
+			subjected to plagiarism detection software, and fully accept all consequences if found responsible for
+			plagiarism, as explained in the syllabus, and described in UNR’s Academic Standards Policy: UAM
+			6,502.''}
+
+		\vspace{1cm}
+		\noindent\rule{6cm}{0.4pt}\\
+		Richard White
+	\end{minipage}
+
+	\vspace{2cm}
+\end{titlepage}
+
+% ── TABLE OF CONTENTS ───
+\tableofcontents
+\newpage
+
+% ============================================================
+%  SECTION 1 -- THEORY
+% ============================================================
+\section{Theory}
+\label{sec:theory}
+
+% ============================================================
+%  SECTION 2 -- RESULTS AND DISCUSSION
+% ============================================================
+\section{Results and Discussion}
+\label{sec:results}
+
+% Present and discuss your results. Include sample results, discuss major
+% findings, and reference any figures or tables generated (i.e., using figure/table captions) to illustrate
+% your results. For clarity, the results for each part must be presented in a separate subsection.
+
+\end{document}
