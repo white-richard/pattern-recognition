@@ -3,3 +3,4 @@ python-lsp-server
 matplotlib
 opencv-python
 Pillow
+scikit-learn
