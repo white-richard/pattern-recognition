@@ -1,4 +1,4 @@
-# Pattern Recognition Programming Assignment 1
+# Pattern Recognition Programming Assignment 3
 
 ## Prerequisites
 
