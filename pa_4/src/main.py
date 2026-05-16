@@ -2,43 +2,75 @@ import numpy as np
 from sklearn.preprocessing import MinMaxScaler
 from sklearn.svm import SVC
 
-# Features with one image per row
-# Take the first 30 eigens
-x_train = np.loadtxt("data/16_20/trPCA_01.txt")[:, :30]
-x_val = np.loadtxt("data/16_20/valPCA_01.txt")[:, :30]
-x_test = np.loadtxt("data/16_20/tsPCA_01.txt")[:, :30]
+# Note: sklearn.svm uses LibSVM in its backend
 
-# Labels are all on one line where 1=male, 2=female
-y_train = np.loadtxt("data/16_20/TtrPCA_01.txt", dtype=int).flatten()
-y_val = np.loadtxt("data/16_20/TvalPCA_01.txt", dtype=int).flatten()
-y_test = np.loadtxt("data/16_20/TtsPCA_01.txt", dtype=int).flatten()
+# All of our params
+resolutions = ["16_20", "48_60"]
+folds = [1, 2, 3]
+n_eigens = 30
+c_values = [0.1, 1, 10, 100]
+d_values = [1, 2, 3]
+gamma_values = [0.1, 1, 10, 100]
 
+for resolution in resolutions:
+    print(f"Resolution: {resolution}")
+    poly_test_errors = []
+    rbf_test_errors = []
 
-scaler = MinMaxScaler(feature_range=(-1, 1))
-# Learns MinMax from train then applies to train, val, test
-x_train_s = scaler.fit_transform(x_train)  # fit and transform
-x_val_s = scaler.transform(x_val)  # transform only
-x_test_s = scaler.transform(x_test)
+    for fold in folds:
+        x_train = np.loadtxt(f"data/{resolution}/trPCA_{fold:02d}.txt")[:, :n_eigens]
+        x_val = np.loadtxt(f"data/{resolution}/valPCA_{fold:02d}.txt")[:, :n_eigens]
+        x_test = np.loadtxt(f"data/{resolution}/tsPCA_{fold:02d}.txt")[:, :n_eigens]
+        y_train = np.loadtxt(f"data/{resolution}/TtrPCA_{fold:02d}.txt", dtype=int).flatten()
+        y_val = np.loadtxt(f"data/{resolution}/TvalPCA_{fold:02d}.txt", dtype=int).flatten()
+        y_test = np.loadtxt(f"data/{resolution}/TtsPCA_{fold:02d}.txt", dtype=int).flatten()
 
-# C=0.1, 1, 10, 100
+        scaler = MinMaxScaler(feature_range=(-1, 1))
+        x_train_s = scaler.fit_transform(x_train)
+        x_val_s = scaler.transform(x_val)
+        x_test_s = scaler.transform(x_test)
 
-# Polynomial: gamma=1, coef0=0 as specified in the assignment
-# d=1, 2, and 3
-# γ=1 and c0=0
-clf = SVC(kernel="poly", C=10, degree=2, gamma=1.0, coef0=0.0)
+        best_poly_err, best_poly_params = float("inf"), None
+        best_rbf_err, best_rbf_params = float("inf"), None
 
-# RBF
-# γ=0.1., 1, 10, and 100
-clf = SVC(kernel="rbf", C=10, gamma=0.1)
+        for c in c_values:
+            for d in d_values:
+                clf = SVC(kernel="poly", C=c, degree=d, gamma=1.0, coef0=0.0)
+                clf.fit(x_train_s, y_train)
+                err = (clf.predict(x_val_s) != y_val).mean() * 100
+                if err < best_poly_err:
+                    best_poly_err, best_poly_params = err, (c, d)
 
-# Sweep to find (γopt, Copt)
-# Then use them to compute the misclassifciation rate on each fold and average
-# Repeat for other image size
+            for g in gamma_values:
+                clf = SVC(kernel="rbf", C=c, gamma=g)
+                clf.fit(x_train_s, y_train)
+                err = (clf.predict(x_val_s) != y_val).mean() * 100
+                if err < best_rbf_err:
+                    best_rbf_err, best_rbf_params = err, (c, g)
 
-# Same API for both
-clf.fit(x_train_s, y_train)
-val_preds = clf.predict(x_val_s)
-test_preds = clf.predict(x_test_s)
+        clf = SVC(
+            kernel="poly",
+            C=best_poly_params[0],
+            degree=best_poly_params[1],
+            gamma=1.0,
+            coef0=0.0,
+        )
+        clf.fit(x_train_s, y_train)
+        poly_test_err = (clf.predict(x_test_s) != y_test).mean() * 100
+        poly_test_errors.append(poly_test_err)
 
-error_rate = (test_preds != y_test).mean() * 100
-print(f"Test error: {error_rate:.2f}%")
+        clf = SVC(kernel="rbf", C=best_rbf_params[0], gamma=best_rbf_params[1])
+        clf.fit(x_train_s, y_train)
+        rbf_test_err = (clf.predict(x_test_s) != y_test).mean() * 100
+        rbf_test_errors.append(rbf_test_err)
+
+        print(f"Fold: {fold}:")
+        print(
+            f"Poly best: C={best_poly_params[0]}, D={best_poly_params[1]} | val err={best_poly_err:.2f}% | test err={poly_test_err:.2f}%",
+        )
+        print(
+            f"RBF best: C={best_rbf_params[0]}, gamma={best_rbf_params[1]} | val err={best_rbf_err:.2f}% | test err={rbf_test_err:.2f}%",
+        )
+
+    print(f"{resolution} Poly avg test error: {np.mean(poly_test_errors):.2f}%")
+    print(f"{resolution} RBF avg test error: {np.mean(rbf_test_errors):.2f}%")
