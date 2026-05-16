@@ -229,10 +229,29 @@ of 9.02\%, which is a substantial increase. This suggests that the model may be 
 test set to evaluate the true generalization performance of the model. Similar patterns can be observed in fold 2 of the 48x60 resolution for both polynomial and RBF
 kernels, where validation errors were around 3.76\% but test errors jumped to around 9\%.
 
-\begin{table}[h]
+\begin{table}[htbp]
+	\centering
+	\caption{Mahalanobis Distance vs Case III. Best results are bolded, and second-best results are underlined.}
+	\begin{tabular}{lcccc}
+		\toprule
+		              & \multicolumn{2}{c}{\textbf{16x20}} & \multicolumn{2}{c}{\textbf{48x60}}                                                      \\
+		\cmidrule(lr){2-3} \cmidrule(lr){4-5}
+		\textbf{Fold} & \textbf{Mahalanobis (\%)}          & \textbf{Case III (\%)}             & \textbf{Mahalanobis (\%)} & \textbf{Case III (\%)} \\
+		\midrule
+		1             & 21.8                               & \underline{13.53}                  & 18.80                     & \textbf{12.03}         \\
+		2             & 14.29                              & 13.53                              & \textbf{11.28}            & \textbf{11.28}         \\
+		3             & 18.05                              & \underline{12.03}                  & \underline{12.03}         & \textbf{11.28}         \\
+		\midrule
+		Avg           & 18.05                              & \underline{13.03}                  & 14.04                     & \textbf{11.53}         \\
+		\bottomrule
+	\end{tabular}
+	\label{tab:mahalanobis_caseIII}
+\end{table}
+
+\begin{table}[htbp]
 	\centering
 	\caption{SVM and Bayes Classifier Results for Resolution 16x20}
-	\begin{tabular}{clcccc}
+	\begin{tabular}{clccc}
 		\toprule
 		\textbf{Fold} & \textbf{Method} & \textbf{Best Parameters} & \textbf{Val Error (\%)} & \textbf{Test Error (\%)} \\
 		\midrule
@@ -260,10 +279,10 @@ kernels, where validation errors were around 3.76\% but test errors jumped to ar
 	\label{tab:svm_bayes_16x20}
 \end{table}
 
-\begin{table}[h]
+\begin{table}[htbp]
 	\centering
 	\caption{SVM and Bayes Classifier Results for Resolution 48x60}
-	\begin{tabular}{clcccc}
+	\begin{tabular}{clccc}
 		\toprule
 		\textbf{Fold} & \textbf{Method} & \textbf{Best Parameters} & \textbf{Val Error (\%)} & \textbf{Test Error (\%)} \\
 		\midrule
@@ -291,9 +310,7 @@ kernels, where validation errors were around 3.76\% but test errors jumped to ar
 	\label{tab:svm_bayes_48x60}
 \end{table}
 
-\pagebreak
-
-\begin{table}[h]
+\begin{table}[htbp]
 	\centering
 	\caption{Selected SVM results highlighting val/test error gap}
 	\begin{tabular}{llcccc}
@@ -306,25 +323,6 @@ kernels, where validation errors were around 3.76\% but test errors jumped to ar
 		\bottomrule
 	\end{tabular}
 	\label{tab:val_test_gap}
-\end{table}
-
-\begin{table}[h]
-	\centering
-	\caption{Mahalanobis Distance vs Case III. Best results are bolded, and second-best results are underlined.}
-	\begin{tabular}{lcccc}
-		\toprule
-		              & \multicolumn{2}{c}{\textbf{16x20}} & \multicolumn{2}{c}{\textbf{48x60}}                                                      \\
-		\cmidrule(lr){2-3} \cmidrule(lr){4-5}
-		\textbf{Fold} & \textbf{Mahalanobis (\%)}          & \textbf{Case III (\%)}             & \textbf{Mahalanobis (\%)} & \textbf{Case III (\%)} \\
-		\midrule
-		1             & 21.8                               & \underline{13.53}                  & 18.80                     & \textbf{12.03}         \\
-		2             & 14.29                              & 13.53                              & \textbf{11.28}            & \textbf{11.28}         \\
-		3             & 18.05                              & \underline{12.03}                  & \underline{12.03}         & \textbf{11.28}         \\
-		\midrule
-		Avg           & 18.05                              & \underline{13.03}                  & 14.04                     & \textbf{11.53}         \\
-		\bottomrule
-	\end{tabular}
-	\label{tab:mahalanobis_caseIII}
 \end{table}
 
 \end{document}
