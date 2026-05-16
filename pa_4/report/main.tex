@@ -100,4 +100,140 @@
 % findings, and reference any figures or tables generated (i.e., using figure/table captions) to illustrate
 % your results. For clarity, the results for each part must be presented in a separate subsection.
 
+The experiments were conducted with a gender dataset containing 400 images from 400 people
+with equal representation between males and females. Two image resolutions are used: 16x20
+and 48x60 pixels. The dataset is split into a training, validation, and testing
+sets and evaluated using a three-fold cross-validation.
+
+\subsection{Experiments 1 \& 2}
+
+In this set of experiments, we compare the performance of SVMs and Bayes classifier. The SVM is
+implemented with a polynomial and RBF kernel. The Bayes classifier is implemented with a Gaussian
+distribution and parameters are estimated using ML estimation on the training data and Mahalanobis
+distance for classification. Equal priors $P(\omega_1) = P(\omega_2)$ are assumed in the
+calculations since the dataset is balanced. In order to fairly compare between SVMs and Bayes,
+the same eigen-cofficients are used between the two classifiers.
+
+\paragraph{SVM.}
+After performing the sweep, the best parameters for the polynomial kernel were found to be $C=0.1$ and $D=1$ for both resolutions except for the 48x60
+resolution where $D=3$ performed best.
+For the RBF kernel, the best parameters for each resolution were found to have one fold with $C=1$ and $\gamma=0.1$ and two folds with $C=10$ and $\gamma=0.1$.
+The best parameters for each fold and resolution are shown in Tables \ref{tab:svm_bayes_16x20} and \ref{tab:svm_bayes_48x60}.
+It's notable that RBF kernels generally performed better than polynomial kernels in the low resolution case, while in the high resolution case, the performance was more mixed.
+
+\paragraph{Bayes Classifier.}
+In comparison, the Bayes classifier performed significantly worse than the SVMs, with test errors ranging from 14.04\% to 18.80\% across folds and resolutions.
+The Mahalanobis distance approach yielded higher error rates compared to the SVMs, indicating that the assumptions of Gaussian distributions may not hold well for
+this dataset.
+
+\paragraph{Why did the Bayes classifier perform so poorly?}
+This initially made me curious about why the Bayes classifier performed so poorly, and compared Mahalanobis distance with the case III classifier; This
+comparison is shown in Table \ref{tab:mahalanobis_caseIII}. The case III classifier, which assumes each Gaussian has different shapes and sizes, performed significantly better
+than the Mahalanobis distance approach. I suspect that although PCA does de-correlate data across both classes, the within-class covariance matrix may not be well
+approximated with a diagonal matrix with the off-diagonal elements set to zero, which is what the Mahalanobis distance approach assumes. This could explain the significant
+performance gap between the two methods.
+
+\paragraph{Val/Test Error Gap.}
+One interesting observation from the results in Table \ref{tab:val_test_gap} is the significant gap between validation and test errors for some of the SVM configurations, particularly for the
+polynomial kernel at low resolution. For example, in fold 2 of the 16x20 resolution, the polynomial kernel achieved a validation error of 4.51\% but a test error
+of 9.02\%, which is a substantial increase. This suggests that the model may be overfitting to the validation set, and highlights the importance of using a separate
+test set to evaluate the true generalization performance of the model. Similar patterns can be observed in fold 2 of the 48x60 resolution for both polynomial and RBF
+kernels, where validation errors were around 3.76\% but test errors jumped to around 9\%.
+
+\begin{table}[h]
+	\centering
+	\caption{SVM and Bayes Classifier Results for Resolution 16x20}
+	\begin{tabular}{clcccc}
+		\toprule
+		\textbf{Fold} & \textbf{Method} & \textbf{Best Parameters} & \textbf{Val Error (\%)} & \textbf{Test Error (\%)} \\
+		\midrule
+		\multirow{3}{*}{1}
+		              & Poly            & $C=0.1,\ D=1$            & 8.27                    & 9.02                     \\
+		              & RBF             & $C=1,\ \gamma=0.1$       & 9.02                    & 6.77                     \\
+		              & Bayes           & ---                      & ---                     & 21.80                    \\
+		\midrule
+		\multirow{3}{*}{2}
+		              & Poly            & $C=0.1,\ D=1$            & 4.51                    & 9.02                     \\
+		              & RBF             & $C=1,\ \gamma=0.1$       & 6.02                    & 8.27                     \\
+		              & Bayes           & ---                      & ---                     & 14.29                    \\
+		\midrule
+		\multirow{3}{*}{3}
+		              & Poly            & $C=0.1,\ D=1$            & 7.52                    & 10.53                    \\
+		              & RBF             & $C=10,\ \gamma=0.1$      & 6.77                    & 8.27                     \\
+		              & Bayes           & ---                      & ---                     & 18.05                    \\
+		\midrule
+		\multirow{3}{*}{Avg}
+		              & Poly            & ---                      & ---                     & 9.52                     \\
+		              & RBF             & ---                      & ---                     & 7.77                     \\
+		              & Bayes           & ---                      & ---                     & 18.05                    \\
+		\bottomrule
+	\end{tabular}
+	\label{tab:svm_bayes_16x20}
+\end{table}
+
+\begin{table}[h]
+	\centering
+	\caption{SVM and Bayes Classifier Results for Resolution 48x60}
+	\begin{tabular}{clcccc}
+		\toprule
+		\textbf{Fold} & \textbf{Method} & \textbf{Best Parameters} & \textbf{Val Error (\%)} & \textbf{Test Error (\%)} \\
+		\midrule
+		\multirow{3}{*}{1}
+		              & Poly            & $C=0.1,\ D=3$            & 6.77                    & 6.77                     \\
+		              & RBF             & $C=10,\ \gamma=0.1$      & 9.02                    & 8.27                     \\
+		              & Bayes           & ---                      & ---                     & 18.80                    \\
+		\midrule
+		\multirow{3}{*}{2}
+		              & Poly            & $C=0.1,\ D=1$            & 3.76                    & 9.02                     \\
+		              & RBF             & $C=1,\ \gamma=0.1$       & 3.76                    & 8.27                     \\
+		              & Bayes           & ---                      & ---                     & 11.28                    \\
+		\midrule
+		\multirow{3}{*}{3}
+		              & Poly            & $C=0.1,\ D=1$            & 10.53                   & 9.77                     \\
+		              & RBF             & $C=1,\ \gamma=0.1$       & 9.02                    & 10.53                    \\
+		              & Bayes           & ---                      & ---                     & 12.03                    \\
+		\midrule
+		\multirow{3}{*}{Avg}
+		              & Poly            & ---                      & ---                     & 8.52                     \\
+		              & RBF             & ---                      & ---                     & 9.02                     \\
+		              & Bayes           & ---                      & ---                     & 14.04                    \\
+		\bottomrule
+	\end{tabular}
+	\label{tab:svm_bayes_48x60}
+\end{table}
+
+\begin{table}[h]
+	\centering
+	\caption{Selected SVM results highlighting val/test error gap}
+	\begin{tabular}{llcccc}
+		\toprule
+		\textbf{Resolution} & \textbf{Method} & \textbf{Fold} & \textbf{Best Parameters} & \textbf{Val Error (\%)} & \textbf{Test Error (\%)} \\
+		\midrule
+		16x20               & Poly            & 2             & $C=0.1,\ D=1$            & 4.51                    & 9.02                     \\
+		48x60               & Poly            & 2             & $C=0.1,\ D=1$            & 3.76                    & 9.02                     \\
+		48x60               & RBF             & 2             & $C=1,\ \gamma=0.1$       & 3.76                    & 8.27                     \\
+		\bottomrule
+	\end{tabular}
+	\label{tab:val_test_gap}
+\end{table}
+
+\begin{table}[h]
+	\centering
+	\caption{Mahalanobis Distance vs Case III. Best results are bolded, and second-best results are underlined.}
+	\begin{tabular}{lcccc}
+		\toprule
+		              & \multicolumn{2}{c}{\textbf{16x20}} & \multicolumn{2}{c}{\textbf{48x60}}                                                      \\
+		\cmidrule(lr){2-3} \cmidrule(lr){4-5}
+		\textbf{Fold} & \textbf{Mahalanobis (\%)}          & \textbf{Case III (\%)}             & \textbf{Mahalanobis (\%)} & \textbf{Case III (\%)} \\
+		\midrule
+		1             & 21.8                               & \underline{13.53}                  & 18.80                     & \textbf{12.03}         \\
+		2             & 14.29                              & 13.53                              & \textbf{11.28}            & \textbf{11.28}         \\
+		3             & 18.05                              & \underline{12.03}                  & \underline{12.03}         & \textbf{11.28}         \\
+		\midrule
+		Avg           & 18.05                              & \underline{13.03}                  & 14.04                     & \textbf{11.53}         \\
+		\bottomrule
+	\end{tabular}
+	\label{tab:mahalanobis_caseIII}
+\end{table}
+
 \end{document}
