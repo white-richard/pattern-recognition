@@ -90,6 +90,94 @@
 \section{Theory}
 \label{sec:theory}
 
+\subsection{Support Vector Machines}
+Support Vector Machines (SVM) are a class of classifiers that find the optimal hyperplane
+that maximizes the margin between two classes in a high-dimensional feature space. Given
+a set of training images $$\mathcal{D} = \{(x_i, y_i)\}_{i=1}^N$$ where $x_i \in \mathbb{R}^d$
+are the feature vectors and $y_i \in \{-1, 1\}$ are the class labels. The SVM optimization problem
+can be formulated as:
+\begin{align*}
+	\min_{w, b, \xi} \quad  & \frac{1}{2} \|w\|^2 + C \sum_{i=1}^N \xi_i                             \\
+	\text{subject to} \quad & y_i (w^T \phi(x_i) + b) \geq 1 - \xi_i, \quad \xi_i \geq 0, \quad i=1,
+	\ldots, N
+\end{align*}
+where $w$ and $b$ are the weight and bias of the hyperplane, $\xi_i$ are slack variables that
+allow for misclassification, $C$ is a regularization parameter that controls the trade-off
+between maximizing the margin and minimizing the classification error, and $\phi(x)$ is a feature
+mapping function that transforms the input data into a higher-dimensional space where it may be
+linearly separable.
+
+This is formally known as the soft-margin SVM formulation, which allows for some misclassification
+in the training data to allow for better generalization to unseen data. It is commonly
+reformulated as a contrained optimization problem which can can solved using Lagrange multipliers
+and the kernel trick, which allows for efficient computation of the inner products in the
+high-dimensional feature space without explicitly computing the mapping $\phi(x)$. The
+discriminate can be expressed as:
+\begin{equation*}
+	f(x) = \sum_{i=1}^N \alpha_i y_i K(x_i, x) + b
+\end{equation*}
+where $\alpha_i$ are the Lagrange multipliers and $K(x_i, x)$ is the kernel function that
+computes the inner product in the feature space. Two common kernel functions include the
+polynomial kernel $K(x_i, x) = (x_i^T x + 1)^D$ and the RBF kernel
+$K(x_i, x) = \exp(-\gamma \|x_i - x\|^2)$,
+where $D$ is the degree of the polynomial and $\gamma$ is a parameter that controls the width
+of the RBF kernel. The most influential training samples to the decision boundary are known as
+the support vectors, which correspond to the non-zero $\alpha_i$ in the solution. In the case
+of a linear classifier, the kernel function is the dot product $K(x_i, x) = x_i^T x$, and the
+decision boundary is a linear hyperplane in the original feature space. However, data is not
+always linearly separable or yields the best performance with a soft-marin SVM. It is instead
+desirable to use a non-linear kernel such as the polynomial or RBF kernel, which can transform
+the data into higher-dimensional space which is hopefully linearly separable. This
+mapping function looks like:
+\begin{equation*}
+	\phi: \mathbb{R}^d \rightarrow \mathbb{R}^D, \quad D >> d
+\end{equation*}
+and the hyperplane is found in $D$.
+
+Data can exist at different scales which can cause features with larger scales to
+dominate the decision boundary. It is crucial to perform feature scaling before applying SVMs to
+ensure that all features contribute equally. One common approach is to scale all values with
+the range of $[-1, 1]$. This can be achieved by the following:
+\begin{equation*}
+	x' = \frac{x - \min(x)}{\max(x) - \min(x)} \times (max(x) - \min(x)) + \min(x)
+\end{equation*}
+so the smallest value in a feature is mapped to -1 and the largest value is mapped to 1.
+
+% At some point talk about why PCA was applied beforehand.
+
+\subsection{Model Selection via Validation}
+Model selection is the process of selecting the best model from a set of candidate models based
+on their performance on a validation set. The validation set is a subset of the training data
+that is not used for training the model, but rather for evaluating its performance and tuning
+hyperparameters. The goal of model selection is to find the model that generalizes best to
+unseen data, which is typically measured by its performance on a separate test set.
+
+This process can be done in a systematic way by performing a grid search over a range of
+hyperparameters and evaluating the performance of each model on the validation set.
+The hyperparameters that yield the best validation performance are then selected for the
+final model.
+
+\subsection{Bayesian Classifier}
+Bayesian Classifier with Maximum Likelihood Estimation has been covered extensively in
+previous assignments, so the associated theory is omitted here for brevity.
+
+% \subsection{Gender Classification}
+% Gender classification seeks to classify images of faces into male and female classes.
+% The assumption is that there are certain features in the face that can be used to distinguish
+% between the two classes.
+
+\subsection{PCA as a Feature Extractor}
+Principal Component Analysis (PCA) is a dimensionality reduction technique that is
+used extract features from high-dimensional image data. PCA has been covered in a
+previous assignment, so specific theory is omitted as well. However, it is worth noting
+the common practice of using only the top $k$ eigenvectors as features. This is because the
+eigenvalues associated with the eigenvectors represent the amount of variance captured by each
+eigenvector, and the top $k$ eigenvectors capture the most variance in the data. By using only
+the top $k$ eigenvectors, we can reduce the dimensionality of the data from 320 (16x20 pixels)
+or 2880 (48x60 pixels) features. By reducing the dimensionality, the curse of dimensionality
+is mitigated while still being expressive enough to capture relevant information for
+classification.
+
 % ============================================================
 %  SECTION 2 -- RESULTS AND DISCUSSION
 % ============================================================
@@ -103,7 +191,8 @@
 The experiments were conducted with a gender dataset containing 400 images from 400 people
 with equal representation between males and females. Two image resolutions are used: 16x20
 and 48x60 pixels. The dataset is split into a training, validation, and testing
-sets and evaluated using a three-fold cross-validation.
+sets and evaluated using a three-fold cross-validation. The top 30 eigenvectors are used
+as features for both SVMs and the Bayes classifier.
 
 \subsection{Experiments 1 \& 2}
 
@@ -201,6 +290,8 @@ kernels, where validation errors were around 3.76\% but test errors jumped to ar
 	\end{tabular}
 	\label{tab:svm_bayes_48x60}
 \end{table}
+
+\pagebreak
 
 \begin{table}[h]
 	\centering
